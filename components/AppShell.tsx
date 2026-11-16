@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { api, onUnauthorized, type Bootstrap } from "@/lib/client/api";
-import { lockAfterSeconds } from "@/lib/client/utils";
+import { localDate, lockAfterSeconds, registerServiceWorker } from "@/lib/client/utils";
 import { AppContext, type AppActions } from "./AppContext";
 import { Lock } from "./Lock";
 
@@ -16,7 +16,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [wait, setWait] = useState(0);
   const [data, setData] = useState<Bootstrap | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
   const hiddenAt = useRef<number | null>(null);
+
+  useEffect(() => {
+    void registerServiceWorker();
+  }, []);
 
   const checkStatus = useCallback(async () => {
     try {
@@ -74,7 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const load = useCallback(async () => {
     setLoadError(null);
     try {
-      setData(await api.bootstrap());
+      setData(await api.bootstrap(localDate()));
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Could not load");
     }
@@ -119,6 +124,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     setTaste: (taste) => setData((d) => d && { ...d, taste }),
     setDay: (day) => setData((d) => d && { ...d, days: [day, ...d.days.filter((x) => x.date !== day.date)].sort((a, b) => b.date.localeCompare(a.date)) }),
     setFavourites: (fn) => setData((d) => d && { ...d, favourites: fn(d.favourites) }),
+    setSettings: (settings) => setData((d) => d && { ...d, user: { ...d.user, settings } }),
+    setCircles: (fn) => setData((d) => d && { ...d, circles: fn(d.circles) }),
+    setUnread: (unread) => setData((d) => d && { ...d, unread }),
+    toast: (message) => {
+      setToastMsg(message);
+      setTimeout(() => setToastMsg(null), 3500);
+    },
     reload: load,
     lock,
   };
@@ -135,6 +147,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <AppContext.Provider value={{ data, actions }}>
       <div className="app">
         <main className="screen">{children}</main>
+        {toastMsg && <div className="toast">{toastMsg}</div>}
         <nav className="tabs">
           {tabs.map((t) => {
             const active = t.href === "/" ? pathname === "/" : pathname.startsWith(t.href);

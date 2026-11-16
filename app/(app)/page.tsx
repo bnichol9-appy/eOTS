@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { IdeaBody } from "@/components/IdeaBody";
 import { PhotoPicker } from "@/components/PhotoPicker";
-import { Chips, Meters, PageHead, Sheet, Working } from "@/components/ui";
+import { Bell, Chips, Meters, PageHead, Sheet, Working } from "@/components/ui";
 import { api, type DayResponse } from "@/lib/client/api";
 import { errorMessage, localDate, prettyDate, REACTIONS, shiftDate, SLOTS } from "@/lib/client/utils";
 import type { Day, Idea } from "@/lib/types";
@@ -48,6 +48,7 @@ export default function TonightPage() {
       const r = await fn();
       actions.setDay(r.day);
       if (r.taste) actions.setTaste(r.taste);
+      if (r.newBadges?.length) actions.toast(`🏅 New badge${r.newBadges.length > 1 ? "s" : ""} earned! See your Log.`);
       return r;
     } catch (e) {
       setError(errorMessage(e));
@@ -80,9 +81,12 @@ export default function TonightPage() {
         </button>
       }
       right={
-        <button className="icon-btn" onClick={() => setDate(shiftDate(date, 1))} aria-label="Next day">
-          ›
-        </button>
+        <>
+          <button className="icon-btn" onClick={() => setDate(shiftDate(date, 1))} aria-label="Next day">
+            ›
+          </button>
+          <Bell unread={data.unread} />
+        </>
       }
     />
   );
@@ -100,6 +104,14 @@ export default function TonightPage() {
     <div>
       {header}
       {error && <p className="error">{error}</p>}
+
+      {data.challenge && day.status === "open" && (
+        <Link href={`/community/challenges/${data.challenge.id}`} className="card challenge-banner">
+          <span className="eyebrow">This week&apos;s challenge</span>
+          <strong>🎯 {data.challenge.title}</strong>
+          <span className="small muted">{data.challenge.description}</span>
+        </Link>
+      )}
 
       {data.rooms.length === 0 && day.ideas.length === 0 && (
         <div className="card notice">
@@ -282,8 +294,10 @@ export default function TonightPage() {
       {showShare && (
         <ShareSheet
           busy={busy === "share"}
+          hasCircles={data.circles.length > 0}
+          challenge={data.challenge && date >= data.challenge.startsOn && date <= data.challenge.endsOn ? data.challenge.title : null}
           onClose={() => setShowShare(false)}
-          onSubmit={(description) => void run("share", () => api.share(date, description)).then((r) => r && setShowShare(false))}
+          onSubmit={(b) => void run("share", () => api.share(date, b)).then((r) => r && setShowShare(false))}
         />
       )}
     </div>
@@ -344,8 +358,22 @@ function CompleteSheet({ busy, onClose, onSubmit }: { busy: boolean; onClose: ()
   );
 }
 
-function ShareSheet({ busy, onClose, onSubmit }: { busy: boolean; onClose: () => void; onSubmit: (description: string) => void }) {
+function ShareSheet({
+  busy,
+  hasCircles,
+  challenge,
+  onClose,
+  onSubmit,
+}: {
+  busy: boolean;
+  hasCircles: boolean;
+  challenge: string | null;
+  onClose: () => void;
+  onSubmit: (b: { description: string; visibility: "public" | "circles"; enterChallenge: boolean }) => void;
+}) {
   const [description, setDescription] = useState("");
+  const [visibility, setVisibility] = useState<"public" | "circles">("public");
+  const [enterChallenge, setEnterChallenge] = useState(Boolean(challenge));
   return (
     <Sheet title="Share with other parents" onClose={onClose}>
       {busy ? (
@@ -356,7 +384,20 @@ function ShareSheet({ busy, onClose, onSubmit }: { busy: boolean; onClose: () =>
             Your photo plus a how-to written from what you actually built. Other families can upvote it, save it and do it in their own house. Your kids&apos; names and your room photos are never shared.
           </p>
           <textarea className="input" rows={3} placeholder="Anything to add? e.g. what you changed, a tip for other parents" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <button className="btn primary big" onClick={() => onSubmit(description)}>
+          <div className="segment">
+            <button className={visibility === "public" ? "on" : ""} onClick={() => setVisibility("public")}>
+              🌍 Everyone
+            </button>
+            <button className={visibility === "circles" ? "on" : ""} disabled={!hasCircles} onClick={() => setVisibility("circles")}>
+              👥 Just my circles
+            </button>
+          </div>
+          {challenge && (
+            <label className="check">
+              <input type="checkbox" checked={enterChallenge} onChange={(e) => setEnterChallenge(e.target.checked)} /> Enter this week&apos;s challenge: <strong>{challenge}</strong>
+            </label>
+          )}
+          <button className="btn primary big" onClick={() => onSubmit({ description, visibility, enterChallenge })}>
             Share it
           </button>
           <button className="btn ghost big" onClick={onClose}>

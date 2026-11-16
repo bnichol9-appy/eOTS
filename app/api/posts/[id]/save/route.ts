@@ -1,19 +1,19 @@
 import { and, eq } from "drizzle-orm";
 import { route } from "@/lib/api";
-import { ApiError, requireUser } from "@/lib/auth";
+import { ApiError, requireSession } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { newId } from "@/lib/id";
 
 export const runtime = "nodejs";
 
-/** Toggle "saved": a saved community post becomes a favourite idea in the user's own list. */
+/** Toggle "saved": a saved community post becomes a favourite idea in the family's list. */
 export const POST = route<{ id: string }>(async (_req, { params }) => {
-  const user = await requireUser();
+  const { family } = await requireSession();
   const db = await getDb();
   const [existing] = await db
     .select({ id: schema.ideas.id })
     .from(schema.ideas)
-    .where(and(eq(schema.ideas.userId, user.id), eq(schema.ideas.sourcePostId, params.id), eq(schema.ideas.favourite, true)))
+    .where(and(eq(schema.ideas.familyId, family.id), eq(schema.ideas.sourcePostId, params.id), eq(schema.ideas.favourite, true)))
     .limit(1);
   if (existing) {
     await db.update(schema.ideas).set({ favourite: false }).where(eq(schema.ideas.id, existing.id));
@@ -23,7 +23,7 @@ export const POST = route<{ id: string }>(async (_req, { params }) => {
   if (!post) throw new ApiError(404, "That setup isn't available");
   await db.insert(schema.ideas).values({
     id: newId(),
-    userId: user.id,
+    familyId: family.id,
     dayId: null,
     slot: null,
     source: "community",

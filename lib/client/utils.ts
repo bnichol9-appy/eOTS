@@ -69,3 +69,46 @@ export function lockAfterSeconds(): number {
 
 export const REACTIONS = ["😴", "😐", "🙂", "😂", "🤯"];
 export const SLOTS = ["Full send", "Quick hit", "Wildcard", "From the community", "Saved"];
+
+export function timezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
+
+export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
+  if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return null;
+  try {
+    return await navigator.serviceWorker.register("/sw.js");
+  } catch {
+    return null;
+  }
+}
+
+function urlBase64ToUint8Array(base64: string) {
+  const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+  const raw = atob((base64 + padding).replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+}
+
+/** Ask for permission and subscribe this device to push. Throws with a readable message when it can't. */
+export async function subscribeToPush(publicKey: string): Promise<PushSubscriptionJSON> {
+  if (!("Notification" in window) || !("PushManager" in window)) throw new Error("This browser can't do notifications. On iPhone, add eOTS to your Home Screen first.");
+  const reg = await registerServiceWorker();
+  if (!reg) throw new Error("Could not start the notification worker");
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") throw new Error("Notifications were blocked. Allow them in your browser settings.");
+  await navigator.serviceWorker.ready;
+  const existing = await reg.pushManager.getSubscription();
+  const sub = existing ?? (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(publicKey) as BufferSource }));
+  return sub.toJSON();
+}
+
+export async function currentPushEndpoint(): Promise<string | null> {
+  if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return null;
+  const reg = await navigator.serviceWorker.getRegistration();
+  const sub = await reg?.pushManager.getSubscription();
+  return sub?.endpoint ?? null;
+}

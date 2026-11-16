@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { Meters, PageHead, Working } from "@/components/ui";
+import { PostCard } from "@/components/PostCard";
 import { api } from "@/lib/client/api";
 import { errorMessage, localDate, REACTIONS, timeAgo } from "@/lib/client/utils";
 import type { PostDetail } from "@/lib/types";
@@ -73,6 +74,8 @@ export default function PostPage() {
           ▲ {post.upvotes}
         </button>
         <span className="pill static">🏠 {post.uses} did this</span>
+        {post.remakes > 0 && <span className="pill static">🔁 {post.remakes} remade</span>}
+        {post.visibility === "circles" && <span className="pill static">👥 circles only</span>}
         <span className="pill static">kids {REACTIONS[post.reaction - 1]}</span>
         <button
           className={`pill ${post.viewer.saved ? "on" : ""}`}
@@ -94,6 +97,11 @@ export default function PostPage() {
         {post.remakeOf && (
           <p className="small muted">
             A remake of <Link href={`/community/${post.remakeOf.id}`}>{post.remakeOf.title}</Link>
+          </p>
+        )}
+        {post.challenge && (
+          <p className="small muted">
+            🎯 Entered in <Link href={`/community/challenges/${post.challenge.id}`}>{post.challenge.title}</Link>
           </p>
         )}
         <p className="eyebrow">What the kids see</p>
@@ -129,6 +137,21 @@ export default function PostPage() {
           </button>
         )}
       </div>
+
+      {post.remakeList.length > 0 && (
+        <>
+          <h2 className="section">Remakes</h2>
+          <p className="muted small">Other families did this one in their house.</p>
+          {post.remakeList.map((r) => (
+            <PostCard
+              key={r.id}
+              post={r}
+              onVote={(x) => void api.vote(x.id).then((v) => setPost((p) => p && { ...p, remakeList: p.remakeList.map((q) => (q.id === x.id ? { ...q, upvotes: v.upvotes, viewer: { ...q.viewer, voted: v.voted } } : q)) }))}
+              onSave={(x) => void api.savePost(x.id).then((v) => setPost((p) => p && { ...p, remakeList: p.remakeList.map((q) => (q.id === x.id ? { ...q, viewer: { ...q.viewer, saved: v.saved } } : q)) }))}
+            />
+          ))}
+        </>
+      )}
 
       <h2 className="section" id="comments">
         Comments

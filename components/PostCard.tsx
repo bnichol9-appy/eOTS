@@ -13,6 +13,8 @@ export function PostCard({ post, onVote, onSave }: { post: PostSummary; onVote: 
         <div className="post-body">
           <p className="eyebrow">
             {post.author.elfName} · {post.roomType} · {timeAgo(post.createdAt)}
+            {post.visibility === "circles" ? " · 👥" : ""}
+            {post.challengeId ? " · 🎯" : ""}
           </p>
           <h3>{post.title}</h3>
           <p className="muted">{post.pitch}</p>
@@ -24,6 +26,7 @@ export function PostCard({ post, onVote, onSave }: { post: PostSummary; onVote: 
           ▲ {post.upvotes}
         </button>
         <span className="pill static">🏠 {post.uses}</span>
+        {post.remakes > 0 && <span className="pill static">🔁 {post.remakes}</span>}
         <Link href={`/community/${post.id}#comments`} className="pill static">
           💬 {post.commentsCount}
         </Link>

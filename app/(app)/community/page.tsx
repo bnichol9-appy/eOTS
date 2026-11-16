@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { PostCard } from "@/components/PostCard";
-import { PageHead, Working } from "@/components/ui";
+import { PageHead, Sheet, Working } from "@/components/ui";
 import { api } from "@/lib/client/api";
 import { errorMessage } from "@/lib/client/utils";
 import { ROOM_TYPES, type PostSummary } from "@/lib/types";
@@ -20,6 +20,7 @@ export default function CommunityPage() {
   const [room, setRoom] = useState("");
   const [posts, setPosts] = useState<PostSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [circleSheet, setCircleSheet] = useState(false);
 
   useEffect(() => {
     setPosts(null);
@@ -58,13 +59,37 @@ export default function CommunityPage() {
     <div>
       <PageHead
         title="Other elves"
-        sub="Real setups other parents built, photographed and rated. Upvote the good ones, save the great ones, do them in your house."
+        sub="Real setups other parents built, photographed and rated."
         right={
-          <Link href={`/community/elf/${data.user.handle}`} className="icon-btn" aria-label="My elf page">
+          <Link href={`/community/elf/${data.family.handle}`} className="icon-btn" aria-label="My elf page">
             🧝
           </Link>
         }
       />
+
+      {data.challenge ? (
+        <Link href={`/community/challenges/${data.challenge.id}`} className="card challenge-banner">
+          <span className="eyebrow">This week&apos;s challenge · {data.challenge.entries} entries</span>
+          <strong>🎯 {data.challenge.title}</strong>
+          <span className="small muted">{data.challenge.description}</span>
+        </Link>
+      ) : (
+        <Link href="/community/challenges" className="small muted block">
+          See the season&apos;s challenges ›
+        </Link>
+      )}
+
+      <div className="circles-row">
+        {data.circles.map((c) => (
+          <Link key={c.id} href={`/community/circles/${c.id}`} className="circle-chip">
+            👥 {c.name} <span className="muted">· {c.memberCount}</span>
+          </Link>
+        ))}
+        <button className="circle-chip add" onClick={() => setCircleSheet(true)}>
+          + {data.circles.length ? "Circle" : "Start or join a circle"}
+        </button>
+      </div>
+
       <div className="segment">
         {SORTS.map((s) => (
           <button key={s.key} className={sort === s.key ? "on" : ""} onClick={() => setSort(s.key)}>
@@ -88,6 +113,51 @@ export default function CommunityPage() {
       ) : (
         posts.map((p) => <PostCard key={p.id} post={p} onVote={vote} onSave={save} />)
       )}
+
+      {circleSheet && <CircleSheet onClose={() => setCircleSheet(false)} />}
     </div>
+  );
+}
+
+function CircleSheet({ onClose }: { onClose: () => void }) {
+  const { actions } = useApp();
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function go(fn: () => Promise<unknown>) {
+    setBusy(true);
+    setError(null);
+    try {
+      await fn();
+      await actions.reload();
+      onClose();
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Sheet title="Circles" onClose={onClose}>
+      <p className="muted small">A private group: the school parents, the cousins, your street. Members see each other&apos;s nights and can share setups just to the circle.</p>
+      <p className="eyebrow">Start one</p>
+      <div className="row">
+        <input className="input" placeholder="Name, e.g. Year 2 parents" value={name} onChange={(e) => setName(e.target.value)} />
+        <button className="btn primary" disabled={!name.trim() || busy} onClick={() => void go(() => api.createCircle(name))}>
+          Create
+        </button>
+      </div>
+      <p className="eyebrow">Or join with a code</p>
+      <div className="row">
+        <input className="input" placeholder="CIR-XXXX-XXXX" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
+        <button className="btn ghost" disabled={!code.trim() || busy} onClick={() => void go(() => api.joinCircle(code))}>
+          Join
+        </button>
+      </div>
+      {error && <p className="error">{error}</p>}
+    </Sheet>
   );
 }

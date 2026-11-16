@@ -2,7 +2,7 @@ import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypt
 import { cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { getDb, schema } from "./db";
-import type { UserRow } from "./db/schema";
+import type { FamilyRow, UserRow } from "./db/schema";
 
 const SESSION = "eots_session";
 const UNLOCK = "eots_unlock";
@@ -105,12 +105,20 @@ export async function isUnlocked(userId: string) {
   return readToken(c.get(UNLOCK)?.value) === userId;
 }
 
+export interface Session {
+  user: UserRow;
+  family: FamilyRow;
+}
+
 /** Signed in AND unlocked with the PIN (or no PIN set yet). Throws a 401 ApiError otherwise. */
-export async function requireUser(): Promise<UserRow> {
+export async function requireSession(): Promise<Session> {
   const user = await getSessionUser();
   if (!user) throw new ApiError(401, "signed_out");
   if (user.pinHash && !(await isUnlocked(user.id))) throw new ApiError(401, "locked");
-  return user;
+  const db = await getDb();
+  const [family] = await db.select().from(schema.families).where(eq(schema.families.id, user.familyId)).limit(1);
+  if (!family) throw new ApiError(500, "Family record missing");
+  return { user, family };
 }
 
 /** Throttle: after 5 misses, lock for 30s doubling each further miss. */
@@ -137,7 +145,14 @@ export async function recordAttempt(user: UserRow, ok: boolean) {
 export const PIN_RE = /^\d{4,8}$/;
 export const HANDLE_RE = /^[a-z0-9_]{3,24}$/;
 
-export function toHandle(displayName: string) {
-  const base = displayName.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 18) || "elf";
+export function toHandle(name: string) {
+  const base = name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 18) || "elf";
   return `${base}_${randomBytes(2).toString("hex")}`;
+}
+
+/** Short, readable invite codes like ELF-7K3Q-M2PX. */
+export function inviteCode(prefix = "ELF") {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const pick = () => Array.from(randomBytes(4), (b) => alphabet[b % alphabet.length]).join("");
+  return `${prefix}-${pick()}-${pick()}`;
 }

@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
 export function Meter({ label, value, max = 5, icon }: { label: string; value: number; max?: number; icon: string }) {
@@ -88,6 +89,14 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
         <div className="sheet-body">{children}</div>
       </div>
     </div>
+  );
+}
+
+export function Bell({ unread }: { unread: number }) {
+  return (
+    <Link href="/inbox" className="icon-btn bell" aria-label="Notifications">
+      🔔{unread > 0 && <span className="badge-count">{unread > 9 ? "9+" : unread}</span>}
+    </Link>
   );
 }
 

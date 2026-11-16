@@ -48,6 +48,15 @@ export default function ElfPage() {
           <Stat n={elf.stats.upvotesReceived} label="upvotes" />
         </div>
         <p className="small muted">Chaos setting: {chaosWords[elf.chaosLevel]}</p>
+        {elf.badges.length > 0 && (
+          <p className="badge-row">
+            {elf.badges.map((b) => (
+              <span key={b.key} title={b.name}>
+                {b.emoji}
+              </span>
+            ))}
+          </p>
+        )}
       </div>
       <h2 className="section">Setups</h2>
       {elf.posts.length === 0 && <p className="muted small">Nothing shared yet.</p>}

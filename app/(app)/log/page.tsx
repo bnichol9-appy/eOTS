@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { IdeaBody } from "@/components/IdeaBody";
@@ -12,7 +12,8 @@ import type { Idea } from "@/lib/types";
 export default function LogPage() {
   const { data, actions } = useApp();
   const router = useRouter();
-  const [tab, setTab] = useState<"saved" | "season" | "brain">("saved");
+  const params = useSearchParams();
+  const [tab, setTab] = useState<"saved" | "season" | "brain" | "badges">(params.get("tab") === "badges" ? "badges" : "saved");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(data.taste.profile);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +62,9 @@ export default function LogPage() {
         </button>
         <button className={tab === "brain" ? "on" : ""} onClick={() => setTab("brain")}>
           Elf brain
+        </button>
+        <button className={tab === "badges" ? "on" : ""} onClick={() => setTab("badges")}>
+          Badges
         </button>
       </div>
       {error && <p className="error">{error}</p>}
@@ -169,6 +173,20 @@ export default function LogPage() {
               </ul>
             </>
           )}
+        </div>
+      )}
+
+      {tab === "badges" && (
+        <div className="badges">
+          {data.badges.map((b) => (
+            <div key={b.key} className={`card badge ${b.awardedAt ? "earned" : ""}`}>
+              <span className="badge-emoji">{b.emoji}</span>
+              <div>
+                <strong>{b.name}</strong>
+                <p className="small muted">{b.description}</p>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

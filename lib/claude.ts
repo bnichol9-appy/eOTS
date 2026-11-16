@@ -231,6 +231,7 @@ export interface GenerateInput {
   avoidTitles: string[];
   slotHint: string;
   communityCandidates: PostSummary[];
+  challenge: { title: string; description: string } | null;
 }
 
 export type GeneratedIdea = Omit<Idea, "id" | "dayId" | "slot" | "source" | "sourcePostId" | "favourite">;
@@ -254,6 +255,7 @@ export async function generateIdeas(input: GenerateInput): Promise<{ ideas: Gene
     candidatesBlock(input.communityCandidates),
     ``,
     `# Tonight`,
+    input.challenge ? `This week's community challenge: "${input.challenge.title}": ${input.challenge.description} Make the WILDCARD idea a strong entry for it (the parent can share it to the challenge afterwards).` : "",
     `Date: ${input.date}` + (input.dayNumber ? ` (day ${input.dayNumber} of ${input.seasonLength})` : " (outside the usual season, treat as a bonus night)"),
     input.direction ? `Parent's direction for tonight: ${input.direction}` : "",
     input.focusRoom ? `Focus on this area: ${input.focusRoom.name}` : "",

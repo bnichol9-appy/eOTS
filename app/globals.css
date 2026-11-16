@@ -789,3 +789,172 @@ textarea.input {
 .keypad .key-go:disabled {
   opacity: 0.35;
 }
+
+/* Social additions */
+.toast {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: calc(var(--tabs-h) + 16px + env(safe-area-inset-bottom));
+  max-width: 528px;
+  margin: 0 auto;
+  background: var(--gold);
+  color: #1a1a1a;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-align: center;
+  z-index: 20;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+.bell {
+  position: relative;
+  font-size: 18px;
+}
+.badge-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--red);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+.block {
+  display: block;
+  margin: 0 0 10px;
+}
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.08em;
+  background: var(--bg);
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+  font-size: 15px;
+}
+.check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--green);
+}
+.plain-list {
+  list-style: none;
+  padding: 0;
+}
+.challenge-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+  border-color: var(--gold);
+  background: linear-gradient(135deg, var(--surface), var(--surface-2));
+}
+.challenge-banner .eyebrow {
+  margin-top: 0;
+}
+.challenge-banner strong {
+  font-size: 18px;
+}
+.card.challenge {
+  display: block;
+  text-decoration: none;
+}
+.card.challenge.active {
+  border-color: var(--gold);
+}
+.card.challenge.ended {
+  opacity: 0.75;
+}
+.circles-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  scrollbar-width: none;
+}
+.circle-chip {
+  flex: none;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.circle-chip.add {
+  border-style: dashed;
+  color: var(--muted);
+}
+.ranked {
+  position: relative;
+}
+.rank {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-weight: 700;
+}
+.badges {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.card.badge {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+.card.badge.earned {
+  opacity: 1;
+  filter: none;
+  border-color: var(--gold);
+}
+.badge-emoji {
+  font-size: 32px;
+}
+.badge-row {
+  font-size: 24px;
+  letter-spacing: 4px;
+}
+.card.notif {
+  display: flex;
+  gap: 12px;
+  text-decoration: none;
+  align-items: flex-start;
+}
+.card.notif.unread {
+  border-color: var(--gold);
+}
+.notif-icon {
+  font-size: 22px;
+  flex: none;
+  width: 32px;
+  text-align: center;
+}
+.segment button:disabled {
+  opacity: 0.4;
+}

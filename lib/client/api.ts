@@ -1,5 +1,5 @@
 "use client";
-import type { Day, Idea, PostDetail, PostSummary, Profile, PublicUser, Room, Stats, Taste } from "../types";
+import type { Badge, Challenge, Circle, Day, Family, Idea, Notification, PostDetail, PostSummary, Profile, PublicUser, Room, Stats, Taste, UserSettings } from "../types";
 
 export class ApiError extends Error {
   status: number;
@@ -35,12 +35,18 @@ async function call<T>(method: string, url: string, body?: unknown): Promise<T> 
 
 export interface Bootstrap {
   user: PublicUser;
+  family: Family;
   profile: Profile;
   rooms: Room[];
   taste: Taste;
   days: Day[];
   favourites: Idea[];
   stats: Stats;
+  badges: Badge[];
+  circles: Circle[];
+  challenge: Challenge | null;
+  unread: number;
+  pushAvailable: boolean;
   model: string;
 }
 
@@ -50,6 +56,7 @@ export interface DayResponse {
   seasonLength?: number;
   taste?: Taste;
   post?: PostDetail;
+  newBadges?: string[];
 }
 
 export interface AuthStatus {
@@ -67,20 +74,23 @@ export interface ElfProfile {
   elfPersonality: string;
   chaosLevel: number;
   stats: Stats;
+  badges: Badge[];
   posts: PostSummary[];
 }
 
 export const api = {
   authStatus: () => call<AuthStatus>("GET", "/auth/status"),
-  signup: (b: { email: string; password: string; displayName: string; elfName: string }) => call<{ ok: true }>("POST", "/auth/signup", b),
+  signup: (b: { email: string; password: string; displayName: string; elfName: string; familyCode: string; timezone: string }) => call<{ ok: true }>("POST", "/auth/signup", b),
   login: (email: string, password: string) => call<{ ok: true }>("POST", "/auth/login", { email, password }),
   logout: () => call<{ ok: true }>("POST", "/auth/logout"),
   setPin: (pin: string, currentPin?: string) => call<{ ok: true }>("POST", "/auth/pin", { pin, currentPin }),
   unlock: (pin: string) => call<{ ok: true }>("POST", "/auth/unlock", { pin }),
   lock: () => call<{ ok: true }>("POST", "/auth/lock"),
 
-  bootstrap: () => call<Bootstrap>("GET", "/bootstrap"),
-  saveProfile: (p: Profile & { displayName?: string; handle?: string }) => call<{ profile: Profile; user: PublicUser }>("PUT", "/profile", p),
+  bootstrap: (today: string) => call<Bootstrap>("GET", `/bootstrap?today=${today}`),
+  saveProfile: (p: Profile & { displayName?: string; handle?: string }) => call<{ profile: Profile; handle: string; displayName: string }>("PUT", "/profile", p),
+  saveSettings: (s: Partial<UserSettings>) => call<UserSettings>("PUT", "/settings", s),
+  joinFamily: (code: string) => call<{ ok: true }>("POST", "/family/join", { code }),
 
   addRoom: (name: string, notes: string, photos: string[]) => call<Room>("POST", "/rooms", { name, notes, photos }),
   updateRoom: (id: string, patch: { name?: string; notes?: string }) => call<Room>("PUT", `/rooms/${id}`, patch),
@@ -98,7 +108,7 @@ export const api = {
   reopen: (date: string) => call<DayResponse>("POST", `/days/${date}/reopen`),
   usePick: (date: string) => call<DayResponse>("POST", `/days/${date}/use-pick`),
   complete: (date: string, body: { photo: string | null; reaction: number; feedbackTags: string[]; notes: string }) => call<DayResponse>("POST", `/days/${date}/complete`, body),
-  share: (date: string, description: string) => call<DayResponse>("POST", `/days/${date}/share`, { description }),
+  share: (date: string, b: { description: string; visibility: "public" | "circles"; enterChallenge: boolean }) => call<DayResponse>("POST", `/days/${date}/share`, b),
 
   favourite: (ideaId: string) => call<Idea>("POST", `/ideas/${ideaId}/favourite`),
   useIdea: (ideaId: string, date: string) => call<DayResponse>("POST", `/ideas/${ideaId}/use`, { date }),
@@ -106,7 +116,7 @@ export const api = {
   saveTaste: (profile: string) => call<Taste>("PUT", "/taste", { profile }),
   resetTaste: () => call<Taste>("POST", "/taste/reset"),
 
-  feed: (q: { sort?: string; tag?: string; room?: string; author?: string; offset?: number }) => {
+  feed: (q: { sort?: string; tag?: string; room?: string; author?: string; circle?: string; challenge?: string; offset?: number }) => {
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(q)) if (v !== undefined && v !== "" && v !== null) sp.set(k, String(v));
     return call<{ posts: PostSummary[] }>("GET", `/posts?${sp}`);
@@ -120,4 +130,19 @@ export const api = {
   deleteComment: (id: string, commentId: string) => call<PostDetail>("DELETE", `/posts/${id}/comments/${commentId}`),
   report: (id: string, reason: string) => call<{ ok: true }>("POST", `/posts/${id}/report`, { reason }),
   elf: (handle: string) => call<ElfProfile>("GET", `/users/${handle}`),
+
+  circles: () => call<{ circles: Circle[] }>("GET", "/circles"),
+  createCircle: (name: string) => call<Circle>("POST", "/circles", { name }),
+  joinCircle: (code: string) => call<Circle>("POST", "/circles/join", { code }),
+  circle: (id: string) => call<{ circle: Circle; posts: PostSummary[] }>("GET", `/circles/${id}`),
+  leaveCircle: (id: string) => call<{ ok: true }>("DELETE", `/circles/${id}`),
+
+  challenges: (today: string) => call<{ challenges: Challenge[] }>("GET", `/challenges?today=${today}`),
+  challenge: (id: string, today: string) => call<{ challenge: Challenge; entries: PostSummary[] }>("GET", `/challenges/${id}?today=${today}`),
+
+  notifications: () => call<{ items: Notification[]; unread: number }>("GET", "/notifications"),
+  markRead: () => call<{ ok: true }>("POST", "/notifications/read"),
+  pushInfo: () => call<{ available: boolean; publicKey: string | null }>("GET", "/push"),
+  pushSubscribe: (sub: PushSubscriptionJSON) => call<{ ok: true }>("POST", "/push", sub),
+  pushUnsubscribe: (endpoint?: string) => call<{ ok: true }>("DELETE", "/push", { endpoint }),
 };

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { PageHead } from "@/components/ui";
 import { api } from "@/lib/client/api";
-import { errorMessage, LOCK_KEY, lockAfterSeconds } from "@/lib/client/utils";
+import { currentPushEndpoint, errorMessage, LOCK_KEY, lockAfterSeconds, subscribeToPush, timezone } from "@/lib/client/utils";
 import type { Profile } from "@/lib/types";
 
 export default function ElfSettingsPage() {
@@ -12,7 +12,11 @@ export default function ElfSettingsPage() {
   const router = useRouter();
   const [p, setP] = useState<Profile>(data.profile);
   const [displayName, setDisplayName] = useState(data.user.displayName);
-  const [handle, setHandle] = useState(data.user.handle);
+  const [handle, setHandle] = useState(data.family.handle);
+  const [familyCode, setFamilyCode] = useState("");
+  const [familyMsg, setFamilyMsg] = useState<string | null>(null);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushMsg, setPushMsg] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lockAfter, setLockAfter] = useState(() => lockAfterSeconds());
@@ -27,7 +31,7 @@ export default function ElfSettingsPage() {
     try {
       const r = await api.saveProfile({ ...p, displayName, handle });
       actions.setProfile(r.profile);
-      actions.setUser(r.user);
+      await actions.reload();
       setSaved(true);
       setTimeout(() => setSaved(false), 1500);
     } catch (e) {
@@ -46,6 +50,50 @@ export default function ElfSettingsPage() {
       setPinMsg(errorMessage(e));
     }
   }
+
+  async function enablePush() {
+    setPushBusy(true);
+    setPushMsg(null);
+    try {
+      const info = await api.pushInfo();
+      if (!info.available || !info.publicKey) throw new Error("Push isn't set up on the server yet (VAPID keys).");
+      const sub = await subscribeToPush(info.publicKey);
+      await api.pushSubscribe(sub);
+      await api.saveSettings({ timezone: timezone() });
+      await actions.reload();
+      setPushMsg("Reminders are on. You should have just got a hello.");
+    } catch (e) {
+      setPushMsg(errorMessage(e));
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
+  async function disablePush() {
+    setPushBusy(true);
+    try {
+      await api.pushUnsubscribe((await currentPushEndpoint()) ?? undefined);
+      await actions.reload();
+      setPushMsg("Reminders are off on this device.");
+    } catch (e) {
+      setPushMsg(errorMessage(e));
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
+  async function saveSetting(patch: Parameters<typeof api.saveSettings>[0]) {
+    try {
+      actions.setSettings(await api.saveSettings(patch));
+    } catch (e) {
+      setError(errorMessage(e));
+    }
+  }
+
+  const s = data.user.settings;
+  const withCurrent = (opts: string[], cur: string | null) => (cur && !opts.includes(cur) ? [...opts, cur].sort() : opts);
+  const timeOptions = withCurrent(["18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30"], s.eveningReminder);
+  const morningOptions = withCurrent(["06:30", "07:00", "07:30", "08:00", "08:30", "09:00"], s.morningReminder);
 
   return (
     <div>
@@ -135,6 +183,85 @@ export default function ElfSettingsPage() {
         <button className="btn primary big" onClick={() => void save()}>
           {saved ? "Saved ✓" : "Save"}
         </button>
+      </div>
+
+      <h2 className="section">Reminders</h2>
+      <div className="card form">
+        <p className="muted small">
+          A nudge at bedtime if the elf hasn&apos;t moved, and one in the morning if you haven&apos;t logged how it went. Upvotes, comments and remakes of your setups also ping you.
+          {data.pushAvailable ? "" : " (Push isn't configured on the server yet, so these only show in your inbox.)"}
+        </p>
+        {data.user.pushEnabled ? (
+          <button className="btn ghost" disabled={pushBusy} onClick={() => void disablePush()}>
+            Turn off push on this device
+          </button>
+        ) : (
+          <button className="btn primary" disabled={pushBusy || !data.pushAvailable} onClick={() => void enablePush()}>
+            {pushBusy ? "…" : "Turn on push notifications"}
+          </button>
+        )}
+        {pushMsg && <p className="small">{pushMsg}</p>}
+        <label>
+          Evening nudge
+          <select className="input" value={s.eveningReminder ?? ""} onChange={(e) => void saveSetting({ eveningReminder: e.target.value || null })}>
+            <option value="">Off</option>
+            {timeOptions.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Morning &quot;how did it go?&quot;
+          <select className="input" value={s.morningReminder ?? ""} onChange={(e) => void saveSetting({ morningReminder: e.target.value || null })}>
+            <option value="">Off</option>
+            {morningOptions.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="muted small">
+          Times are in {s.timezone}.{" "}
+          {s.timezone !== timezone() && (
+            <button className="link-btn" onClick={() => void saveSetting({ timezone: timezone() })}>
+              Use this device&apos;s timezone ({timezone()})
+            </button>
+          )}
+        </p>
+      </div>
+
+      <h2 className="section">Co-parents</h2>
+      <div className="card form">
+        <p className="muted small">Everyone on this elf: {data.family.members.map((m) => m.displayName).join(", ")}.</p>
+        <p>
+          Your family code: <strong className="code">{data.family.inviteCode}</strong>
+        </p>
+        <p className="muted small">Your partner signs up with this code and gets the same house, plan, log and elf. Whoever is up at 11pm sees the same thing.</p>
+        {data.family.members.length === 1 && data.stats.nightsDone === 0 && data.rooms.length === 0 && (
+          <>
+            <p className="eyebrow">Or join your partner&apos;s elf instead</p>
+            <div className="row">
+              <input className="input" placeholder="Their family code" value={familyCode} onChange={(e) => setFamilyCode(e.target.value.toUpperCase())} />
+              <button
+                className="btn ghost"
+                disabled={!familyCode}
+                onClick={() =>
+                  void api
+                    .joinFamily(familyCode)
+                    .then(() => actions.reload())
+                    .then(() => setFamilyMsg("Joined!"))
+                    .catch((e) => setFamilyMsg(errorMessage(e)))
+                }
+              >
+                Join
+              </button>
+            </div>
+            {familyMsg && <p className="small">{familyMsg}</p>}
+          </>
+        )}
       </div>
 
       <h2 className="section">Lock</h2>

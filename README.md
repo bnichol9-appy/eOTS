@@ -13,7 +13,16 @@ Runs on **Vercel** with **Neon** (Postgres) and **Vercel Blob** (photos), built 
 3. **Done, how did it go?**: photograph what you actually built, rate the kids' reaction and tag it. Claude analyses the photo and updates your family's *taste profile*, which feeds every future idea.
 4. **Share with other parents**: one tap turns that night (photo + plan + what really happened) into a community post. Claude rewrites it as a generalised how-to, strips your kids' names and your house specifics, and runs a safety check. Your room photos are never shared.
 5. **Other elves**: the community feed. Trending / New / All-time, filter by room. Upvote, save (lands in your Saved list), comment, and *Do this tonight*. Every post shows how many families have done it. Each parent has an elf page with their stats and setups.
-6. **Log**: your saved ideas, the season history, and the "elf brain" (the editable taste profile).
+6. **Log**: your saved ideas, the season history, the "elf brain" (the editable taste profile) and your badges.
+
+### Social
+
+- **Circles**: private groups (the school parents, the cousins) joined with a code. Members see each other's recent nights and can share a setup to "just my circles" instead of everyone. The nightly community pick draws from circle posts too.
+- **Remakes**: do another family's setup, share your photo, and it's linked as a remake under the original. Remake counts feed the trending score and the original poster gets a nudge.
+- **Weekly challenges**: a themed week (Grand Entrance, Bathroom Week, Recruit the Toys, Grand Finale). Tick "enter this week's challenge" when sharing; most upvotes at the end wins the Champion badge. The generator makes the Wildcard idea a challenge entry while one is running. The calendar lives in `lib/challenges.ts`.
+- **Reminders and nudges**: an evening push if the elf hasn't moved, a morning one if last night wasn't logged, plus pings for upvote milestones, comments, remakes, circle joins and badges. Everything also lands in the in-app inbox (bell on the Tonight tab).
+- **Badges**: fourteen of them, from First Night of Chaos to Toilet Paper Artisan to Champion. Shown on your Log and your public elf page.
+- **Co-parents**: a family has one elf, one house and one plan but any number of logins. Share your family code from the Elf tab; your partner signs up with it. Each parent keeps their own PIN and reminder times.
 
 The whole app is behind a PIN on top of your account: it locks when it goes to the background and always asks for the PIN on a fresh open, so kids grabbing the phone see nothing.
 
@@ -21,8 +30,13 @@ The whole app is behind a PIN on top of your account: it locks when it goes to t
 
 1. Push this repo and import it into Vercel.
 2. In the project's **Storage** tab add the **Neon** integration (sets `DATABASE_URL`) and the **Blob** integration (sets `BLOB_READ_WRITE_TOKEN`).
-3. Add environment variables `ANTHROPIC_API_KEY` and `AUTH_SECRET` (any long random string, e.g. `openssl rand -hex 32`).
-4. Deploy. The build runs `drizzle-kit migrate && next build`, so the schema is applied to Neon automatically on every deploy.
+3. Add environment variables `ANTHROPIC_API_KEY`, `AUTH_SECRET` (any long random string, e.g. `openssl rand -hex 32`) and `CRON_SECRET` (another random string).
+4. For push notifications, run `npm run vapid` locally and add the two `VAPID_*` keys it prints plus `VAPID_SUBJECT` (a `mailto:` address).
+5. Deploy. The build runs `drizzle-kit migrate && next build`, so the schema is applied to Neon automatically on every deploy.
+
+`vercel.json` schedules the nudge job every 15 minutes. On the Vercel Hobby plan cron jobs only run once a day, so either upgrade to Pro or point a free external pinger (cron-job.org etc.) at `https://<your-app>/api/cron/nudges` every 15 minutes with the header `Authorization: Bearer <CRON_SECRET>`. The job is idempotent; it never sends the same nudge twice in a day.
+
+On iPhone, push notifications only work once the app has been added to the Home Screen.
 
 Open the URL on your phone and use *Add to Home Screen*.
 
@@ -46,6 +60,8 @@ Useful scripts: `npm run db:generate` (new migration after changing `lib/db/sche
 | `AUTH_SECRET` | yes in production | Signs session and unlock cookies. |
 | `DATABASE_URL` | on Vercel | Neon Postgres connection string. |
 | `BLOB_READ_WRITE_TOKEN` | on Vercel | Vercel Blob token for photos. |
+| `CRON_SECRET` | for nudges | Authorises the scheduled nudge job. |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | for push | Web push keys from `npm run vapid`. Without them, notifications only appear in the inbox. |
 | `EOTS_MODEL` | no | Defaults to `claude-opus-5-5`. |
 
 ## Layout
@@ -55,15 +71,18 @@ app/(app)/        the five screens (Tonight, House, Elves, Log, Elf) behind the 
 app/api/          route handlers: auth, rooms, days, ideas, taste, posts, users
 components/       shell, lock screen, cards, sheets
 lib/claude.ts     every prompt and structured-output schema
-lib/db/schema.ts  Drizzle schema (users, rooms, days, ideas, taste, posts, votes, comments, reports)
-lib/data.ts       queries, including the hot-ranking for the feed
+lib/db/schema.ts  Drizzle schema (families, users, rooms, days, ideas, taste, posts, votes, comments,
+                  reports, circles, challenges, badges, notifications, push subscriptions)
+lib/data.ts       queries, including the hot-ranking and circle visibility for the feed
 lib/days.ts       generation, remix, community pick, "do this tonight"
+lib/circles.ts, lib/challenges.ts, lib/badges.ts, lib/notify.ts
+app/api/cron/     the scheduled nudge and challenge wrap-up job
 drizzle/          generated SQL migrations
 ```
 
 ## Community ranking and moderation
 
-Trending uses a decay score: `(upvotes + 2 × families who did it + 0.5 × comments + 1) / (hours old + 2)^1.3`. A setup that families actually build outranks one that only gets upvotes. Claude flags unsafe or unsuitable posts into review at share time, and three reports from different parents also pull a post into review (visible only to its author). Your own posts can be deleted at any time.
+Trending uses a decay score: `(upvotes + 2 × families who did it + 3 × remakes + 0.5 × comments + 1) / (hours old + 2)^1.3`. A setup that families actually build outranks one that only gets upvotes. Claude flags unsafe or unsuitable posts into review at share time, and three reports from different parents also pull a post into review (visible only to its author). Your own posts can be deleted at any time.
 
 ## Cost
 

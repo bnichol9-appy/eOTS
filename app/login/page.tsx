@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/client/api";
-import { errorMessage } from "@/lib/client/utils";
+import { errorMessage, timezone } from "@/lib/client/utils";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [elfName, setElfName] = useState("");
+  const [familyCode, setFamilyCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -20,7 +21,7 @@ export default function LoginPage() {
     setError(null);
     try {
       if (mode === "login") await api.login(email, password);
-      else await api.signup({ email, password, displayName, elfName });
+      else await api.signup({ email, password, displayName, elfName, familyCode, timezone: timezone() });
       router.replace("/");
     } catch (err) {
       setError(errorMessage(err));
@@ -38,7 +39,8 @@ export default function LoginPage() {
         {mode === "signup" && (
           <>
             <input className="input" placeholder="Your name (other parents see this)" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
-            <input className="input" placeholder="Your elf's name" value={elfName} onChange={(e) => setElfName(e.target.value)} />
+            {!familyCode && <input className="input" placeholder="Your elf's name" value={elfName} onChange={(e) => setElfName(e.target.value)} />}
+            <input className="input" placeholder="Joining your partner's elf? Family code (optional)" value={familyCode} onChange={(e) => setFamilyCode(e.target.value.toUpperCase())} />
           </>
         )}
         <input className="input" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />

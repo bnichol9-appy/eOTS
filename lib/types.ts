@@ -114,6 +114,9 @@ export interface PostSummary {
   upvotes: number;
   uses: number;
   commentsCount: number;
+  remakes: number;
+  visibility: "public" | "circles";
+  challengeId: string | null;
   createdAt: string;
   author: { handle: string; displayName: string; elfName: string };
   viewer: { voted: boolean; saved: boolean; mine: boolean };
@@ -126,6 +129,8 @@ export interface PostDetail extends PostSummary {
   parentTip: string;
   status: string;
   remakeOf: { id: string; title: string } | null;
+  remakeList: PostSummary[];
+  challenge: { id: string; title: string } | null;
   comments: Comment[];
 }
 
@@ -137,12 +142,69 @@ export interface Comment {
   mine: boolean;
 }
 
+export interface UserSettings {
+  timezone: string;
+  eveningReminder: string | null; // "HH:MM" local, null = off
+  morningReminder: string | null;
+  nudges: { eveningSentOn?: string; morningSentOn?: string };
+}
+
+export const defaultSettings: UserSettings = { timezone: "UTC", eveningReminder: "20:30", morningReminder: "07:30", nudges: {} };
+
 export interface PublicUser {
   id: string;
   email: string;
   displayName: string;
-  handle: string;
   hasPin: boolean;
+  settings: UserSettings;
+  pushEnabled: boolean;
+}
+
+export interface Family {
+  id: string;
+  handle: string;
+  inviteCode: string;
+  members: { id: string; displayName: string }[];
+}
+
+export interface Badge {
+  key: string;
+  name: string;
+  emoji: string;
+  description: string;
+  awardedAt: string | null;
+}
+
+export interface Circle {
+  id: string;
+  name: string;
+  inviteCode: string;
+  isOwner: boolean;
+  memberCount: number;
+  members: { familyId: string; handle: string; elfName: string; parents: string }[];
+  recent: { elfName: string; handle: string; title: string; date: string; postId: string | null }[];
+}
+
+export interface Challenge {
+  id: string;
+  title: string;
+  description: string;
+  tag: string;
+  startsOn: string;
+  endsOn: string;
+  status: "upcoming" | "active" | "ended";
+  entries: number;
+  winner: { postId: string; title: string; elfName: string; handle: string } | null;
+}
+
+export interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  url: string;
+  readAt: string | null;
+  createdAt: string;
 }
 
 export interface Stats {
@@ -150,6 +212,7 @@ export interface Stats {
   streak: number;
   posts: number;
   upvotesReceived: number;
+  remakesReceived: number;
 }
 
 export const defaultProfile: Profile = {

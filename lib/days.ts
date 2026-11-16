@@ -1,17 +1,17 @@
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
-import type { UserRow } from "./db/schema";
-import { ApiError } from "./auth";
+import { ApiError, type Session } from "./auth";
 import { newId } from "./id";
 import { generateIdeas, THREE_SLOTS, type GeneratedIdea } from "./claude";
 import { getOrCreateDay, getRoom, getTaste, historyDays, hydrateDay, listPosts, listRooms, usedPostIds } from "./data";
 import { loadPhotoBase64 } from "./storage";
-import type { Day, Idea } from "./types";
+import { activeChallenge } from "./challenges";
+import type { Day, Idea, Profile } from "./types";
 
 const { days, ideas, posts } = schema;
 
-export function seasonInfo(user: UserRow, date: string) {
-  const { seasonStart, seasonEnd } = user.profile;
+export function seasonInfo(profile: Profile, date: string) {
+  const { seasonStart, seasonEnd } = profile;
   const year = date.slice(0, 4);
   const start = Date.parse(`${year}-${seasonStart}T00:00:00Z`);
   const end = Date.parse(`${year}-${seasonEnd}T00:00:00Z`);
@@ -22,18 +22,25 @@ export function seasonInfo(user: UserRow, date: string) {
   return { dayNumber: dayNumber !== null && dayNumber >= 1 && dayNumber <= seasonLength ? dayNumber : null, seasonLength };
 }
 
-async function communityCandidates(userId: string) {
-  const used = await usedPostIds(userId);
-  return listPosts({ viewerId: userId, sort: "hot", excludeUserId: userId, excludePostIds: used, limit: 20 });
+async function communityCandidates(familyId: string) {
+  const used = await usedPostIds(familyId);
+  return listPosts({ viewerFamilyId: familyId, sort: "hot", excludeFamilyId: familyId, excludePostIds: used, limit: 20 });
 }
 
-export async function runGeneration(user: UserRow, date: string, opts: { direction: string; focusRoomId: string | null; count: number; avoidTitles: string[]; slotHint: string; withPick: boolean }) {
-  const [rooms, taste, history, candidates] = await Promise.all([listRooms(user.id), getTaste(user.id), historyDays(user.id, date), opts.withPick ? communityCandidates(user.id) : Promise.resolve([])]);
-  const focusRoom = opts.focusRoomId ? await getRoom(user.id, opts.focusRoomId) : null;
+export async function runGeneration(s: Session, date: string, opts: { direction: string; focusRoomId: string | null; count: number; avoidTitles: string[]; slotHint: string; withPick: boolean }) {
+  const familyId = s.family.id;
+  const [rooms, taste, history, candidates, challenge] = await Promise.all([
+    listRooms(familyId),
+    getTaste(familyId),
+    historyDays(familyId, date),
+    opts.withPick ? communityCandidates(familyId) : Promise.resolve([]),
+    activeChallenge(date),
+  ]);
+  const focusRoom = opts.focusRoomId ? await getRoom(familyId, opts.focusRoomId) : null;
   const focusPhotos = focusRoom ? await Promise.all(focusRoom.photos.slice(0, 2).map((p) => loadPhotoBase64(p.url))) : [];
-  const { dayNumber, seasonLength } = seasonInfo(user, date);
+  const { dayNumber, seasonLength } = seasonInfo(s.family.profile, date);
   return generateIdeas({
-    profile: user.profile,
+    profile: s.family.profile,
     rooms,
     taste,
     history,
@@ -47,41 +54,35 @@ export async function runGeneration(user: UserRow, date: string, opts: { directi
     avoidTitles: opts.avoidTitles,
     slotHint: opts.slotHint,
     communityCandidates: candidates,
+    challenge: challenge ? { title: challenge.title, description: challenge.description } : null,
   });
 }
 
-export async function generateDay(user: UserRow, date: string, direction: string, focusRoomId: string | null): Promise<Day> {
+export async function generateDay(s: Session, date: string, direction: string, focusRoomId: string | null): Promise<Day> {
   const db = await getDb();
-  const row = await getOrCreateDay(user.id, date);
+  const familyId = s.family.id;
+  const row = await getOrCreateDay(familyId, date);
   const existing = await db.select({ title: ideas.title }).from(ideas).where(eq(ideas.dayId, row.id));
-  const out = await runGeneration(user, date, { direction, focusRoomId, count: 3, avoidTitles: existing.map((e) => e.title), slotHint: THREE_SLOTS, withPick: true });
-
-  // Detach previous unfavourited ideas; favourites keep living in the saved list.
+  const out = await runGeneration(s, date, { direction, focusRoomId, count: 3, avoidTitles: existing.map((e) => e.title), slotHint: THREE_SLOTS, withPick: true });
   await db.delete(ideas).where(and(eq(ideas.dayId, row.id), eq(ideas.favourite, false)));
   await db.update(ideas).set({ dayId: null, slot: null }).where(eq(ideas.dayId, row.id));
-  await db.insert(ideas).values(out.ideas.map((i, slot) => toIdeaRow(user.id, row.id, slot, i)));
+  await db.insert(ideas).values(out.ideas.map((i, slot) => toIdeaRow(familyId, row.id, slot, i)));
   await db
     .update(days)
-    .set({
-      direction,
-      chosenIdeaId: null,
-      status: "open",
-      generatedAt: new Date(),
-      communityPickPostId: out.communityPickId,
-      communityPickReason: out.communityPickWhy,
-    })
+    .set({ direction, chosenIdeaId: null, status: "open", generatedAt: new Date(), communityPickPostId: out.communityPickId, communityPickReason: out.communityPickWhy })
     .where(eq(days.id, row.id));
-  return hydrateDay(user.id, (await getOrCreateDay(user.id, date))!);
+  return hydrateDay(familyId, await getOrCreateDay(familyId, date));
 }
 
-export async function remixIdea(user: UserRow, date: string, ideaId: string, direction: string): Promise<Day> {
+export async function remixIdea(s: Session, date: string, ideaId: string, direction: string): Promise<Day> {
   const db = await getDb();
-  const row = await getOrCreateDay(user.id, date);
+  const familyId = s.family.id;
+  const row = await getOrCreateDay(familyId, date);
   const dayIdeas = await db.select().from(ideas).where(eq(ideas.dayId, row.id));
   const old = dayIdeas.find((i) => i.id === ideaId);
   if (!old) throw new ApiError(404, "No such idea");
   const others = dayIdeas.filter((i) => i.id !== ideaId);
-  const out = await runGeneration(user, date, {
+  const out = await runGeneration(s, date, {
     direction: direction || "Different from the rejected idea, same energy or bigger.",
     focusRoomId: null,
     count: 1,
@@ -93,44 +94,24 @@ export async function remixIdea(user: UserRow, date: string, ideaId: string, dir
   if (!replacement) throw new ApiError(502, "No idea came back. Try again.");
   if (old.favourite) await db.update(ideas).set({ dayId: null, slot: null }).where(eq(ideas.id, old.id));
   else await db.delete(ideas).where(eq(ideas.id, old.id));
-  await db.insert(ideas).values(toIdeaRow(user.id, row.id, old.slot ?? 0, replacement));
+  await db.insert(ideas).values(toIdeaRow(familyId, row.id, old.slot ?? 0, replacement));
   if (row.chosenIdeaId === ideaId) await db.update(days).set({ chosenIdeaId: null, status: "open" }).where(eq(days.id, row.id));
-  return hydrateDay(user.id, (await getOrCreateDay(user.id, date))!);
+  return hydrateDay(familyId, await getOrCreateDay(familyId, date));
 }
 
-function toIdeaRow(userId: string, dayId: string, slot: number, i: GeneratedIdea) {
-  return {
-    id: newId(),
-    userId,
-    dayId,
-    slot,
-    source: "generated",
-    sourcePostId: null,
-    favourite: false,
-    title: i.title,
-    pitch: i.pitch,
-    roomName: i.roomName,
-    whatKidsSee: i.whatKidsSee,
-    steps: i.steps,
-    supplies: i.supplies,
-    setupMinutes: i.setupMinutes,
-    chaos: i.chaos,
-    mess: i.mess,
-    elfNote: i.elfNote,
-    tags: i.tags,
-  };
+function toIdeaRow(familyId: string, dayId: string, slot: number, i: GeneratedIdea) {
+  return { id: newId(), familyId, dayId, slot, source: "generated", sourcePostId: null, favourite: false, ...i };
 }
 
-/** Copy a community post (or a saved idea) into a day as the chosen plan. */
-export async function attachPostToDay(user: UserRow, date: string, postId: string, slot = 3): Promise<Day> {
+export async function attachPostToDay(familyId: string, date: string, postId: string, slot = 3): Promise<Day> {
   const db = await getDb();
   const [post] = await db.select().from(posts).where(and(eq(posts.id, postId), eq(posts.status, "published"))).limit(1);
   if (!post) throw new ApiError(404, "That setup is no longer available");
-  const row = await getOrCreateDay(user.id, date);
+  const row = await getOrCreateDay(familyId, date);
   const id = newId();
   await db.insert(ideas).values({
     id,
-    userId: user.id,
+    familyId,
     dayId: row.id,
     slot,
     source: "community",
@@ -149,35 +130,17 @@ export async function attachPostToDay(user: UserRow, date: string, postId: strin
     tags: post.tags,
   });
   await db.update(days).set({ chosenIdeaId: id, status: "planned" }).where(eq(days.id, row.id));
-  return hydrateDay(user.id, (await getOrCreateDay(user.id, date))!);
+  return hydrateDay(familyId, await getOrCreateDay(familyId, date));
 }
 
-export async function attachIdeaToDay(user: UserRow, date: string, idea: Idea): Promise<Day> {
+export async function attachIdeaToDay(familyId: string, date: string, idea: Idea): Promise<Day> {
   const db = await getDb();
-  const row = await getOrCreateDay(user.id, date);
+  const row = await getOrCreateDay(familyId, date);
   const id = newId();
-  await db.insert(ideas).values({
-    id,
-    userId: user.id,
-    dayId: row.id,
-    slot: 4,
-    source: idea.source,
-    sourcePostId: idea.sourcePostId,
-    favourite: false,
-    title: idea.title,
-    pitch: idea.pitch,
-    roomName: idea.roomName,
-    whatKidsSee: idea.whatKidsSee,
-    steps: idea.steps,
-    supplies: idea.supplies,
-    setupMinutes: idea.setupMinutes,
-    chaos: idea.chaos,
-    mess: idea.mess,
-    elfNote: idea.elfNote,
-    tags: idea.tags,
-  });
+  const { id: _old, dayId: _d, slot: _s, favourite: _f, ...rest } = idea;
+  await db.insert(ideas).values({ id, familyId, dayId: row.id, slot: 4, favourite: false, ...rest });
   await db.update(days).set({ chosenIdeaId: id, status: "planned" }).where(eq(days.id, row.id));
-  return hydrateDay(user.id, (await getOrCreateDay(user.id, date))!);
+  return hydrateDay(familyId, await getOrCreateDay(familyId, date));
 }
 
 export async function bumpPostUses(postId: string | null) {
