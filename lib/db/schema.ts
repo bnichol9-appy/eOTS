@@ -1,5 +1,5 @@
 import { boolean, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
-import type { Profile, RoomInventory, DayResult, Moderation, UserSettings } from "../types";
+import type { Profile, RoomInventory, DayResult, Moderation, UserSettings, Role, KitItem } from "../types";
 
 /** A family shares one elf, one house, one taste profile. Co-parents are users on the same family. */
 export const families = pgTable("families", {
@@ -34,6 +34,8 @@ export const rooms = pgTable(
     familyId: text("family_id").notNull().references(() => families.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     notes: text("notes").notNull().default(""),
+    isKidsRoom: boolean("is_kids_room").notNull().default(false),
+    maxNights: integer("max_nights"),
     inventory: jsonb("inventory").$type<RoomInventory>(),
     analysedAt: timestamp("analysed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -59,6 +61,8 @@ export const days = pgTable(
     familyId: text("family_id").notNull().references(() => families.id, { onDelete: "cascade" }),
     date: text("date").notNull(), // YYYY-MM-DD in the family's local time
     status: text("status").notNull().default("open"), // open | planned | done | skipped
+    isBusy: boolean("is_busy").notNull().default(false),
+    kitState: jsonb("kit_state").$type<Record<string, boolean>>().notNull().default({}),
     direction: text("direction").notNull().default(""),
     chosenIdeaId: text("chosen_idea_id"),
     communityPickPostId: text("community_pick_post_id"),
@@ -83,12 +87,15 @@ export const ideas = pgTable(
     title: text("title").notNull(),
     pitch: text("pitch").notNull(),
     roomName: text("room_name").notNull(),
+    format: text("format").notNull().default("single"),
+    roles: jsonb("roles").$type<Role[]>().notNull().default([]),
     whatKidsSee: text("what_kids_see").notNull(),
     steps: jsonb("steps").$type<string[]>().notNull(),
-    supplies: jsonb("supplies").$type<string[]>().notNull(),
+    kit: jsonb("kit").$type<KitItem[]>().notNull().default([]),
     setupMinutes: integer("setup_minutes").notNull(),
     chaos: integer("chaos").notNull(),
     mess: integer("mess").notNull(),
+    spook: integer("spook").notNull().default(2),
     elfNote: text("elf_note").notNull().default(""),
     tags: jsonb("tags").$type<string[]>().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -139,12 +146,14 @@ export const posts = pgTable(
     title: text("title").notNull(),
     pitch: text("pitch").notNull(),
     roomType: text("room_type").notNull(),
+    format: text("format").notNull().default("single"),
     whatKidsSee: text("what_kids_see").notNull(),
     steps: jsonb("steps").$type<string[]>().notNull(),
-    supplies: jsonb("supplies").$type<string[]>().notNull(),
+    kit: jsonb("kit").$type<KitItem[]>().notNull().default([]),
     setupMinutes: integer("setup_minutes").notNull(),
     chaos: integer("chaos").notNull(),
     mess: integer("mess").notNull(),
+    spook: integer("spook").notNull().default(2),
     tags: jsonb("tags").$type<string[]>().notNull(),
     parentTip: text("parent_tip").notNull().default(""),
     photoUrl: text("photo_url").notNull(),

@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray, ne, notInArray, or, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import type { IdeaRow, PostRow, RoomRow } from "./db/schema";
-import type { Comment, Day, Idea, PostDetail, PostSummary, Room, Stats, Taste } from "./types";
+import { elfNames, type Comment, type Day, type Idea, type PostDetail, type PostSummary, type Room, type Stats, type Taste } from "./types";
 import { newId } from "./id";
 import { awardBadges, badgeContext } from "./badges";
 
@@ -18,7 +18,8 @@ export async function listRooms(familyId: string): Promise<Room[]> {
     .from(roomPhotos)
     .where(inArray(roomPhotos.roomId, rows.map((r) => r.id)))
     .orderBy(roomPhotos.createdAt);
-  return rows.map((r) => toRoom(r, photos.filter((p) => p.roomId === r.id)));
+  const used = await roomUsage(familyId);
+  return rows.map((r) => toRoom(r, photos.filter((p) => p.roomId === r.id), used.get(r.name.toLowerCase()) ?? 0));
 }
 
 export async function getRoom(familyId: string, id: string): Promise<Room | null> {
@@ -26,11 +27,38 @@ export async function getRoom(familyId: string, id: string): Promise<Room | null
   const [row] = await db.select().from(rooms).where(and(eq(rooms.id, id), eq(rooms.familyId, familyId))).limit(1);
   if (!row) return null;
   const photos = await db.select().from(roomPhotos).where(eq(roomPhotos.roomId, id)).orderBy(roomPhotos.createdAt);
-  return toRoom(row, photos);
+  const used = await roomUsage(familyId);
+  return toRoom(row, photos, used.get(row.name.toLowerCase()) ?? 0);
 }
 
-function toRoom(r: RoomRow, photos: { id: string; url: string }[]): Room {
-  return { id: r.id, name: r.name, notes: r.notes, photos: photos.map((p) => ({ id: p.id, url: p.url })), inventory: r.inventory ?? null, analysedAt: r.analysedAt?.toISOString() ?? null };
+/** How many planned or done nights used each room (by name, including split-night roles). */
+async function roomUsage(familyId: string): Promise<Map<string, number>> {
+  const db = await getDb();
+  const rows = await db
+    .select({ roomName: ideas.roomName, roles: ideas.roles })
+    .from(days)
+    .innerJoin(ideas, eq(ideas.id, days.chosenIdeaId))
+    .where(and(eq(days.familyId, familyId), inArray(days.status, ["planned", "done"])));
+  const map = new Map<string, number>();
+  for (const r of rows) {
+    const names = new Set([r.roomName, ...r.roles.map((x) => x.roomName)].map((n) => n.toLowerCase()));
+    for (const n of names) map.set(n, (map.get(n) ?? 0) + 1);
+  }
+  return map;
+}
+
+function toRoom(r: RoomRow, photos: { id: string; url: string }[], usedCount: number): Room {
+  return {
+    id: r.id,
+    name: r.name,
+    notes: r.notes,
+    isKidsRoom: r.isKidsRoom,
+    maxNights: r.maxNights,
+    photos: photos.map((p) => ({ id: p.id, url: p.url })),
+    inventory: r.inventory ? { ...r.inventory, spots: r.inventory.spots ?? [] } : null,
+    analysedAt: r.analysedAt?.toISOString() ?? null,
+    usedCount,
+  };
 }
 
 // ---------- Ideas / days ----------
@@ -46,14 +74,18 @@ export function toIdea(i: IdeaRow): Idea {
     title: i.title,
     pitch: i.pitch,
     roomName: i.roomName,
+    format: i.format as Idea["format"],
+    roles: i.roles ?? [],
     whatKidsSee: i.whatKidsSee,
     steps: i.steps,
-    supplies: i.supplies,
+    kit: i.kit ?? [],
     setupMinutes: i.setupMinutes,
     chaos: i.chaos,
     mess: i.mess,
+    spook: i.spook,
     elfNote: i.elfNote,
     tags: i.tags,
+    createdAt: i.createdAt.toISOString(),
   };
 }
 
@@ -88,6 +120,8 @@ function dayShape(row: typeof days.$inferSelect, ideaList: Idea[], communityPick
     chosenIdeaId: row.chosenIdeaId,
     direction: row.direction,
     status: row.status as Day["status"],
+    isBusy: row.isBusy,
+    kitState: row.kitState ?? {},
     result: row.result ?? null,
     postId: row.postId,
     communityPick,
@@ -121,6 +155,13 @@ export async function historyDays(familyId: string, excludeDate: string): Promis
     .filter((d) => d.date !== excludeDate && d.status !== "open")
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(-40);
+}
+
+/** Every idea the family has seen: for the Ideas library. */
+export async function listIdeas(familyId: string, limit = 80): Promise<Idea[]> {
+  const db = await getDb();
+  const rows = await db.select().from(ideas).where(eq(ideas.familyId, familyId)).orderBy(desc(ideas.favourite), desc(ideas.createdAt)).limit(limit);
+  return rows.map(toIdea);
 }
 
 export async function listFavourites(familyId: string): Promise<Idea[]> {
@@ -225,9 +266,11 @@ function toSummary(p: PostRow, author: { handle: string; displayName: string }, 
     title: p.title,
     pitch: p.pitch,
     roomType: p.roomType,
+    format: p.format as PostSummary["format"],
     setupMinutes: p.setupMinutes,
     chaos: p.chaos,
     mess: p.mess,
+    spook: p.spook,
     tags: p.tags,
     photoUrl: p.photoUrl,
     reaction: p.reaction,
@@ -273,7 +316,7 @@ export async function getPostDetail(viewer: { familyId: string; userId: string }
     ...summary,
     whatKidsSee: row.whatKidsSee,
     steps: row.steps,
-    supplies: row.supplies,
+    kit: row.kit ?? [],
     parentTip: row.parentTip,
     status: row.status,
     remakeOf,
@@ -284,7 +327,7 @@ export async function getPostDetail(viewer: { familyId: string; userId: string }
         id: r.c.id,
         body: r.c.body,
         createdAt: r.c.createdAt.toISOString(),
-        author: { handle: r.handle, displayName: r.displayName, elfName: r.profile.elfName || "their elf" },
+        author: { handle: r.handle, displayName: r.displayName, elfName: elfNames(r.profile) },
         mine: r.c.userId === viewer.userId,
       }),
     ),

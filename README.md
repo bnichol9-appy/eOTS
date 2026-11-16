@@ -1,19 +1,21 @@
-# eOTS
+# Trick or Tinsel (eOTS)
 
-A PIN-locked Elf on the Shelf planner that comes up with big, action-packed overnight setups for **your** house, learns what your family actually likes from the photos you take of what you built, and shares the best of it with other parents.
+A PIN-locked Elf on the Shelf planner that gives you one set-up per night for **your** house, built from photos of your rooms, with one to three elves, a kit bag, an AI-assistant hand-off, and a community of other parents. "eOTS" is the kid-proof name on the home screen.
 
-No cute elf-holding-a-marshmallow scenes. Toilet-papered hallways, zip lines across the kitchen, sock ropes down the stairs, crime scenes in the living room.
+The elves are night-shift mischief-makers: big, physical, gently spooky, never scary. Toilet-papered hallways, zip lines across the kitchen, séances in the bathroom.
 
 Runs on **Vercel** with **Neon** (Postgres) and **Vercel Blob** (photos), built with Next.js, Drizzle ORM and the Claude API.
 
 ## How it works
 
-1. **House**: photograph areas of your home. Claude builds a private inventory of what's there: surfaces, props, hazards and concrete setup hooks per room.
-2. **Tonight**: tap *Plan tonight's mischief* and get three original options (**Full send**, **Quick hit**, **Wildcard**) plus one **community pick**: a real setup another parent built and photographed, chosen by Claude because it fits your rooms, chaos level and taste. Remix any option, ask for a fresh batch with a direction, or ♡ an idea to save it for later.
-3. **Done, how did it go?**: photograph what you actually built, rate the kids' reaction and tag it. Claude analyses the photo and updates your family's *taste profile*, which feeds every future idea.
-4. **Share with other parents**: one tap turns that night (photo + plan + what really happened) into a community post. Claude rewrites it as a generalised how-to, strips your kids' names and your house specifics, and runs a safety check. Your room photos are never shared.
-5. **Other elves**: the community feed. Trending / New / All-time, filter by room. Upvote, save (lands in your Saved list), comment, and *Do this tonight*. Every post shows how many families have done it. Each parent has an elf page with their stats and setups.
-6. **Log**: your saved ideas, the season history, the "elf brain" (the editable taste profile) and your badges.
+1. **Rooms**: photograph a room and Claude finds the hiding spots, pins them on the photo (numbered, with unsafe ones blocked) and builds a private inventory of props and mischief hooks. Kids' bedrooms are used sparingly.
+2. **Tonight**: the hero plan with elf pins on your room photo, set-up time, mess and spook. Shuffle through three original options (**Full send**, **Quick hit**, **Wildcard**) plus a **community pick** from another family, then *Mark as set up*. Busy nights force five minutes, no mess, nothing to buy. With two or three elves, nights are **duo**, **split** or **solo**.
+3. **Calendar**: the month at a glance with a dot per elf and the room, big nights outlined, *Plan the week* to lock in the next four nights, and a night-before reminder you can text to your assistant.
+4. **Kit bag**: everything the next four nights need, grouped by night and tagged by elf, with have/buy per item. *Ask my assistant to buy these* opens WhatsApp or Messages with the order written out and a budget; or copy it as a shopping list.
+5. **How did it go?**: photograph what you actually built, rate the kids' reaction and tag it. Claude analyses the photo and updates your family's *taste profile*, which feeds every future idea.
+6. **Share with other elves**: one tap turns that night into a community post. Claude rewrites it as a generalised how-to, strips your kids' names and house specifics, and runs a safety check. Room photos are never shared.
+7. **Ideas**: your own library (search, filters, saved) with *Dream up 3 more for my house*, and the **Other elves** community: trending, new and all-time feeds, circles, weekly challenges and elf pages.
+8. **Settings**: light, dark or match-phone, your elves and their personalities, house rules (ages, spook, chaos, time limit, season), the AI assistant channel and number, reminders, co-parents, badges and the PIN.
 
 ### Social
 
@@ -25,6 +27,10 @@ Runs on **Vercel** with **Neon** (Postgres) and **Vercel Blob** (photos), built 
 - **Co-parents**: a family has one elf, one house and one plan but any number of logins. Share your family code from the Elf tab; your partner signs up with it. Each parent keeps their own PIN and reminder times.
 
 The whole app is behind a PIN on top of your account: it locks when it goes to the background and always asks for the PIN on a fresh open, so kids grabbing the phone see nothing.
+
+## Design
+
+The app follows the Trick or Tinsel design pack in `design/handoff/` (tokens, design system, reference screens, product spec). Light theme by default, dark and match-phone in Settings. Gloock for display type, DM Sans for body, Lucide line icons, no emoji.
 
 ## Deploy on Vercel
 

@@ -3,7 +3,7 @@ import { getDb, schema } from "./db";
 import { ApiError, inviteCode } from "./auth";
 import { newId } from "./id";
 import { notifyFamily } from "./notify";
-import type { Circle } from "./types";
+import { elfNames, type Circle } from "./types";
 
 const { circles, circleMembers, families, users, days, ideas } = schema;
 
@@ -62,13 +62,13 @@ async function hydrateCircle(c: typeof circles.$inferSelect, viewerFamilyId: str
     members: memberRows.map((m) => ({
       familyId: m.familyId,
       handle: m.handle,
-      elfName: m.profile.elfName || "their elf",
+      elfName: elfNames(m.profile),
       parents: parents
         .filter((p) => p.familyId === m.familyId)
         .map((p) => p.name)
         .join(" & "),
     })),
-    recent: recent.map((r) => ({ elfName: byFamily.get(r.familyId)?.profile.elfName || "an elf", handle: byFamily.get(r.familyId)?.handle ?? "", title: r.title, date: r.date, postId: r.postId })),
+    recent: recent.map((r) => ({ elfName: byFamily.get(r.familyId) ? elfNames(byFamily.get(r.familyId)!.profile) : "an elf", handle: byFamily.get(r.familyId)?.handle ?? "", title: r.title, date: r.date, postId: r.postId })),
   };
 }
 
@@ -86,7 +86,7 @@ export async function joinCircle(familyId: string, code: string, joinerName: str
   if (!c) throw new ApiError(404, "No circle with that code");
   await db.insert(circleMembers).values({ circleId: c.id, familyId }).onConflictDoNothing();
   if (c.ownerFamilyId !== familyId) {
-    await notifyFamily(c.ownerFamilyId, { type: "circle_join", title: `${joinerName} joined ${c.name}`, body: "Their elf's nights will show up in your circle.", url: `/community/circles/${c.id}` });
+    await notifyFamily(c.ownerFamilyId, { type: "circle_join", title: `${joinerName} joined ${c.name}`, body: "Their elf's nights will show up in your circle.", url: `/ideas/circles/${c.id}` });
   }
   return getCircle(familyId, c.id);
 }

@@ -31,16 +31,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="screen lock">
-      <div className="lock-elf">🧝</div>
-      <h1>eOTS</h1>
-      <p className="muted">Big, action-packed Elf on the Shelf nights, planned for your house.</p>
-      <form className="card form login-form" onSubmit={submit}>
+    <div className="screen full lock">
+      <div className="brand">Trick or Tinsel</div>
+      <h1>{mode === "login" ? "Welcome back" : "Start the night shift"}</h1>
+      <p className="muted">One elf set-up per night, built from photos of your own house.</p>
+      <form className="auth-form" onSubmit={submit}>
         {mode === "signup" && (
           <>
-            <input className="input" placeholder="Your name (other parents see this)" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
+            <input className="input" placeholder="Your name (other parents see this)" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required autoComplete="name" />
             {!familyCode && <input className="input" placeholder="Your elf's name" value={elfName} onChange={(e) => setElfName(e.target.value)} />}
-            <input className="input" placeholder="Joining your partner's elf? Family code (optional)" value={familyCode} onChange={(e) => setFamilyCode(e.target.value.toUpperCase())} />
+            <input className="input" placeholder="Joining your partner's elf? Family code" value={familyCode} onChange={(e) => setFamilyCode(e.target.value.toUpperCase())} />
           </>
         )}
         <input className="input" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
@@ -54,10 +54,10 @@ export default function LoginPage() {
           autoComplete={mode === "signup" ? "new-password" : "current-password"}
         />
         {error && <p className="error">{error}</p>}
-        <button className="btn primary big" disabled={busy}>
+        <button className="btn primary large full" disabled={busy}>
           {busy ? "…" : mode === "login" ? "Sign in" : "Create account"}
         </button>
-        <button type="button" className="btn ghost" onClick={() => setMode(mode === "login" ? "signup" : "login")}>
+        <button type="button" className="link-btn" onClick={() => setMode(mode === "login" ? "signup" : "login")}>
           {mode === "login" ? "New here? Create an account" : "Already have an account? Sign in"}
         </button>
       </form>

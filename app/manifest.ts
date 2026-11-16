@@ -2,13 +2,13 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "eOTS",
+    name: "Trick or Tinsel",
     short_name: "eOTS",
-    description: "Elf on the Shelf chaos planner",
+    description: "One elf set-up per night, built from photos of your own house.",
     start_url: "/",
     display: "standalone",
-    background_color: "#0f1a13",
-    theme_color: "#0f1a13",
+    background_color: "#FBF5EA",
+    theme_color: "#FBF5EA",
     icons: [
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },
       { src: "/icon-192.png", sizes: "192x192", type: "image/png" },

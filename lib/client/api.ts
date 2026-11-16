@@ -1,5 +1,6 @@
 "use client";
 import type { Badge, Challenge, Circle, Day, Family, Idea, Notification, PostDetail, PostSummary, Profile, PublicUser, Room, Stats, Taste, UserSettings } from "../types";
+import type { KitBag } from "../kit";
 
 export class ApiError extends Error {
   status: number;
@@ -41,6 +42,7 @@ export interface Bootstrap {
   taste: Taste;
   days: Day[];
   favourites: Idea[];
+  library: Idea[];
   stats: Stats;
   badges: Badge[];
   circles: Circle[];
@@ -89,11 +91,12 @@ export const api = {
 
   bootstrap: (today: string) => call<Bootstrap>("GET", `/bootstrap?today=${today}`),
   saveProfile: (p: Profile & { displayName?: string; handle?: string }) => call<{ profile: Profile; handle: string; displayName: string }>("PUT", "/profile", p),
-  saveSettings: (s: Partial<UserSettings>) => call<UserSettings>("PUT", "/settings", s),
+  saveSettings: (s: Omit<Partial<UserSettings>, "assistant"> & { assistant?: Partial<UserSettings["assistant"]> }) => call<UserSettings>("PUT", "/settings", s),
   joinFamily: (code: string) => call<{ ok: true }>("POST", "/family/join", { code }),
 
-  addRoom: (name: string, notes: string, photos: string[]) => call<Room>("POST", "/rooms", { name, notes, photos }),
-  updateRoom: (id: string, patch: { name?: string; notes?: string }) => call<Room>("PUT", `/rooms/${id}`, patch),
+  addRoom: (name: string, notes: string, photos: string[], isKidsRoom: boolean) => call<Room>("POST", "/rooms", { name, notes, photos, isKidsRoom }),
+  updateRoom: (id: string, patch: { name?: string; notes?: string; isKidsRoom?: boolean; maxNights?: number | null }) => call<Room>("PUT", `/rooms/${id}`, patch),
+  setSpot: (id: string, spotId: string, enabled: boolean) => call<Room>("PUT", `/rooms/${id}/spots/${spotId}`, { enabled }),
   addRoomPhotos: (id: string, photos: string[]) => call<Room>("POST", `/rooms/${id}/photos`, { photos }),
   deleteRoomPhoto: (id: string, photoId: string) => call<Room>("DELETE", `/rooms/${id}/photos/${photoId}`),
   analyseRoom: (id: string) => call<Room>("POST", `/rooms/${id}/analyse`),
@@ -107,6 +110,11 @@ export const api = {
   skip: (date: string) => call<DayResponse>("POST", `/days/${date}/skip`),
   reopen: (date: string) => call<DayResponse>("POST", `/days/${date}/reopen`),
   usePick: (date: string) => call<DayResponse>("POST", `/days/${date}/use-pick`),
+  setBusy: (date: string, busy: boolean) => call<DayResponse>("POST", `/days/${date}/busy`, { busy }),
+  setKit: (date: string, key: string, have: boolean) => call<DayResponse>("PUT", `/days/${date}/kit`, { key, have }),
+  kit: (from: string, nights = 4) => call<KitBag>("GET", `/kit?from=${from}&nights=${nights}`),
+  plan: (from: string, nights = 4) => call<{ days: Day[] }>("POST", "/plan", { from, nights }),
+  planDates: (dates: string[]) => call<{ days: Day[] }>("POST", "/plan", { dates }),
   complete: (date: string, body: { photo: string | null; reaction: number; feedbackTags: string[]; notes: string }) => call<DayResponse>("POST", `/days/${date}/complete`, body),
   share: (date: string, b: { description: string; visibility: "public" | "circles"; enterChallenge: boolean }) => call<DayResponse>("POST", `/days/${date}/share`, b),
 

@@ -67,8 +67,41 @@ export function lockAfterSeconds(): number {
   }
 }
 
-export const REACTIONS = ["😴", "😐", "🙂", "😂", "🤯"];
+export const REACTIONS = ["Flop", "Meh", "Liked it", "Loved it", "Lost it"];
 export const SLOTS = ["Full send", "Quick hit", "Wildcard", "From the community", "Saved"];
+
+export const THEME_KEY = "tot.theme";
+export function applyTheme(theme: "light" | "dark" | "system") {
+  try {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem(THEME_KEY, theme);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function monthName(date: string) {
+  const [y, m] = date.split("-").map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString(undefined, { month: "long" });
+}
+
+export function dayNum(date: string) {
+  return Number(date.slice(8, 10));
+}
+
+export function weekday(date: string) {
+  const [y, m, d] = date.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: "short" });
+}
+
+export async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export function timezone(): string {
   try {

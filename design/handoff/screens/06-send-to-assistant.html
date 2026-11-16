@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Trick or Tinsel — Send to my assistant</title>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.light{--bg:#FBF5EA;--surface:#F3E9D8;--line:#E3D6C0;--text:#241A3D;--muted:#6B5F86;--body:#3D3358;--acc-text:#A4470B;--ph:#EFE3CF;--ph-stripe:rgba(36,26,61,.06);--pine:#2F7A5B;--overlay:rgba(251,245,234,.92);--dash:#C9B9A0;--scrim:rgba(36,26,61,.45)}
+.dark{--bg:#17122B;--surface:#241C40;--line:#3A3060;--text:#F4EBD0;--muted:#B9AFCF;--body:#D9D1E6;--acc-text:#FF8A3D;--ph:#2A2148;--ph-stripe:rgba(244,235,208,.06);--pine:#9BE3A8;--overlay:rgba(23,18,43,.85);--dash:#5A4E85;--scrim:rgba(0,0,0,.55)}
+a{color:var(--acc-text)}
+input[type=checkbox]{width:22px;height:22px;accent-color:#E0701F;margin:0}
+</style>
+</head>
+<body>
+
+
+<div class="light" style="position: relative; width: 390px; height: 844px; box-sizing: border-box; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow: hidden">
+
+  <div aria-hidden="true" style="padding: 24px 22px; display: flex; flex-direction: column; gap: 12px">
+    <div style="font-family: 'Gloock', serif; font-size: 28px">The elves' kit bag</div>
+    <div style="height: 64px; border-radius: 14px; background: var(--surface)"></div>
+    <div style="height: 44px; border-bottom: 1px solid var(--line)"></div>
+    <div style="height: 44px; border-bottom: 1px solid var(--line)"></div>
+    <div style="height: 44px; border-bottom: 1px solid var(--line)"></div>
+  </div>
+  <a href="Kit.dc.html" aria-label="Close" style="position: absolute; inset: 0; background: var(--scrim)"></a>
+
+  <section role="dialog" aria-label="Send to my assistant" style="position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 22px 26px; border-radius: 28px 28px 0 0; background: var(--bg); display: flex; flex-direction: column; gap: 14px">
+    <div style="align-self: center; width: 40px; height: 5px; border-radius: 3px; background: var(--line)"></div>
+    <div>
+      <div style="font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted)">Send to my assistant</div>
+      <h2 style="margin: 4px 0 0; font-family: 'Gloock', serif; font-weight: 400; font-size: 26px; line-height: 1.1">Buy 3 things by Sunday</h2>
+    </div>
+
+    <div role="radiogroup" aria-label="Send via" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 4px; border-radius: 16px; background: var(--surface)">
+      
+        <button role="radio" aria-checked="true" style="height: 44px; border-radius: 12px; border: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font: 700 14px 'DM Sans', sans-serif; background: var(--bg); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.12)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>WhatsApp
+        </button>
+      
+        <button role="radio" aria-checked="false" style="height: 44px; border-radius: 12px; border: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font: 500 14px 'DM Sans', sans-serif; background: transparent; color: var(--text); box-shadow: none">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>iMessage
+        </button>
+      
+    </div>
+
+    <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--muted)"><span>To: My assistant</span><span>[+44 your assistant's number]</span></div>
+
+    <div style="align-self: flex-end; max-width: 300px; padding: 12px 14px; border-radius: 18px 18px 4px 18px; background: var(--pine); color: var(--bg); font-size: 14px; line-height: 1.45; white-space: pre-line">Please order for delivery by Sun 13 Dec:
+• Googly eyes, mixed sizes (pack of 50+)
+• Cocktail sticks (100)
+• Battery tealights ×3
+Budget up to £15. Deliver to home, mark "elf supplies" so the kids don't open it.</div>
+
+    <label style="display: flex; align-items: center; gap: 12px; min-height: 44px; font-size: 14px"><input type="checkbox" checked="" style="">Also remind me the night before each set-up</label>
+
+    <button style="height: 54px; border-radius: 27px; border: 0; background: #FF8A3D; color: #17122B; font: 700 16px 'DM Sans', sans-serif">Open in WhatsApp</button>
+    <div style="text-align: center; font-size: 12px; color: var(--muted)">Opens WhatsApp with this message ready. You tap send.</div>
+  </section>
+</div>
+
+
+
+
+</body></html>

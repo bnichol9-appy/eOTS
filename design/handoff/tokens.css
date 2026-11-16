@@ -1,0 +1,23 @@
+/* Trick or Tinsel — design tokens as CSS variables (used by design/screens/*.html).
+   Put .light or .dark on the app root. The accent colour is the same in both modes. */
+@import url('https://fonts.googleapis.com/css2?family=Gloock&family=DM+Sans:wght@400;500;700&display=swap');
+
+:root { --accent: #FF8A3D; --on-accent: #17122B; --elf3: #C9A7FF; --checkbox: #E0701F;
+        --font-display: 'Gloock', serif; --font-body: 'DM Sans', sans-serif; }
+
+.light {
+  --bg: #FBF5EA; --surface: #F3E9D8; --line: #E3D6C0; --dash: #C9B9A0;
+  --text: #241A3D; --body: #3D3358; --muted: #6B5F86;
+  --acc-text: #A4470B; --pine: #2F7A5B;
+  --ph: #EFE3CF; --ph-stripe: rgba(36,26,61,.06);
+  --overlay: rgba(251,245,234,.92); --scrim: rgba(36,26,61,.45);
+}
+.dark {
+  --bg: #17122B; --surface: #241C40; --line: #3A3060; --dash: #5A4E85;
+  --text: #F4EBD0; --body: #D9D1E6; --muted: #B9AFCF;
+  --acc-text: #FF8A3D; --pine: #9BE3A8;
+  --ph: #2A2148; --ph-stripe: rgba(244,235,208,.06);
+  --overlay: rgba(23,18,43,.85); --scrim: rgba(0,0,0,.55);
+}
+/* Photo placeholder hatch (only shown until the user's photo loads) */
+.ph { background-color: var(--ph); background-image: repeating-linear-gradient(135deg, var(--ph-stripe) 0 10px, transparent 10px 20px); }

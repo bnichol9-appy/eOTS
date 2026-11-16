@@ -3,12 +3,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
-import { PageHead, Working } from "@/components/ui";
+import { NotifIcon } from "@/components/icons";
+import { Topbar, Working } from "@/components/ui";
 import { api } from "@/lib/client/api";
 import { errorMessage, timeAgo } from "@/lib/client/utils";
 import type { Notification } from "@/lib/types";
-
-const ICONS: Record<string, string> = { nudge: "🧝", upvotes: "▲", comment: "💬", remake: "🔁", badge: "🏅", circle_join: "👥", coparent: "💞", challenge: "🎯", hello: "👋" };
 
 export default function InboxPage() {
   const router = useRouter();
@@ -28,29 +27,21 @@ export default function InboxPage() {
   }, []);
 
   return (
-    <div>
-      <PageHead
-        title="Inbox"
-        sub={data.user.pushEnabled ? "Push is on for this device." : "Turn on push in the Elf tab to get these on your phone."}
-        left={
-          <button className="icon-btn" onClick={() => router.back()} aria-label="Back">
-            ‹
-          </button>
-        }
-      />
+    <div className="screen">
+      <Topbar eyebrow={data.user.pushEnabled ? "Push is on for this device" : "Turn on push in Settings to get these on your phone"} title="Inbox" back={() => router.back()} />
       {error && <p className="error">{error}</p>}
       {items === null ? (
         <Working label="Loading…" />
       ) : items.length === 0 ? (
-        <div className="card notice">Nothing yet. Upvotes, comments, remakes, badges and bedtime nudges land here.</div>
+        <div className="card filled body">Nothing yet. Upvotes, comments, remakes, badges and bedtime nudges land here.</div>
       ) : (
         items.map((n) => (
-          <Link key={n.id} href={n.url} className={`card notif ${n.readAt ? "" : "unread"}`}>
-            <span className="notif-icon">{ICONS[n.type] ?? "•"}</span>
+          <Link key={n.id} href={n.url} className={`card notif ${n.readAt ? "" : "accent-border"}`}>
+            <NotifIcon type={n.type} />
             <div>
               <strong>{n.title}</strong>
-              <p className="small muted">{n.body}</p>
-              <p className="small muted">{timeAgo(n.createdAt)} ago</p>
+              <p className="body small">{n.body}</p>
+              <p className="muted small">{timeAgo(n.createdAt)} ago</p>
             </div>
           </Link>
         ))

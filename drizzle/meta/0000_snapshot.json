@@ -1,5 +1,5 @@
 {
-  "id": "c29c3363-0749-4cd9-afe1-2aee74ceb7ad",
+  "id": "ac215e2d-bf68-433a-bafe-28bf27708a42",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -385,6 +385,20 @@
           "notNull": true,
           "default": "'open'"
         },
+        "is_busy": {
+          "name": "is_busy",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "kit_state": {
+          "name": "kit_state",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
         "direction": {
           "name": "direction",
           "type": "text",
@@ -598,6 +612,20 @@
           "primaryKey": false,
           "notNull": true
         },
+        "format": {
+          "name": "format",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'single'"
+        },
+        "roles": {
+          "name": "roles",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
         "what_kids_see": {
           "name": "what_kids_see",
           "type": "text",
@@ -610,11 +638,12 @@
           "primaryKey": false,
           "notNull": true
         },
-        "supplies": {
-          "name": "supplies",
+        "kit": {
+          "name": "kit",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'[]'::jsonb"
         },
         "setup_minutes": {
           "name": "setup_minutes",
@@ -633,6 +662,13 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "spook": {
+          "name": "spook",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 2
         },
         "elf_note": {
           "name": "elf_note",
@@ -891,6 +927,13 @@
           "primaryKey": false,
           "notNull": true
         },
+        "format": {
+          "name": "format",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'single'"
+        },
         "what_kids_see": {
           "name": "what_kids_see",
           "type": "text",
@@ -903,11 +946,12 @@
           "primaryKey": false,
           "notNull": true
         },
-        "supplies": {
-          "name": "supplies",
+        "kit": {
+          "name": "kit",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'[]'::jsonb"
         },
         "setup_minutes": {
           "name": "setup_minutes",
@@ -926,6 +970,13 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "spook": {
+          "name": "spook",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 2
         },
         "tags": {
           "name": "tags",
@@ -1352,6 +1403,19 @@
           "primaryKey": false,
           "notNull": true,
           "default": "''"
+        },
+        "is_kids_room": {
+          "name": "is_kids_room",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "max_nights": {
+          "name": "max_nights",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
         },
         "inventory": {
           "name": "inventory",

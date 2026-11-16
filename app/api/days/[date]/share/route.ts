@@ -8,6 +8,7 @@ import { getDb, schema } from "@/lib/db";
 import { newId } from "@/lib/id";
 import { notifyFamily } from "@/lib/notify";
 import { loadPhotoBase64 } from "@/lib/storage";
+import { elfNames } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -28,7 +29,7 @@ export const POST = route<{ date: string }>(async (req, { params }) => {
     idea: ideaRow ? toIdea(ideaRow) : null,
     result: row.result,
     ownDescription: String(b.description ?? "").slice(0, 600),
-    elfName: family.profile.elfName,
+    profile: family.profile,
   });
   const visibility = b.visibility === "circles" ? "circles" : "public";
   const challenge = b.enterChallenge ? await activeChallenge(params.date) : null;
@@ -42,16 +43,18 @@ export const POST = route<{ date: string }>(async (req, { params }) => {
     remakeOfPostId,
     challengeId: challenge?.id ?? null,
     visibility,
-    elfName: family.profile.elfName || "an elf",
+    elfName: elfNames(family.profile),
     title: draft.title,
     pitch: draft.pitch,
     roomType: draft.roomType,
+    format: draft.format,
     whatKidsSee: draft.whatKidsSee,
     steps: draft.steps,
-    supplies: draft.supplies,
+    kit: draft.kit,
     setupMinutes: draft.setupMinutes,
     chaos: draft.chaos,
     mess: draft.mess,
+    spook: draft.spook,
     tags: [...new Set([...draft.tags.map((t) => t.toLowerCase().slice(0, 30)), ...(challenge ? [challenge.tag] : [])])],
     parentTip: draft.parentTip,
     photoUrl: row.result.photoUrl,
@@ -68,7 +71,7 @@ export const POST = route<{ date: string }>(async (req, { params }) => {
       .where(eq(schema.posts.id, remakeOfPostId))
       .returning({ familyId: schema.posts.familyId, title: schema.posts.title });
     if (orig && orig.familyId !== family.id) {
-      await notifyFamily(orig.familyId, { type: "remake", title: `🔁 ${family.profile.elfName || "Another elf"} remade "${orig.title}"`, body: "See how it turned out in their house.", url: `/community/${id}` });
+      await notifyFamily(orig.familyId, { type: "remake", title: `${elfNames(family.profile)} remade "${orig.title}"`, body: "See how it turned out in their house.", url: `/ideas/${id}` });
       await refreshBadges(orig.familyId);
     }
   }

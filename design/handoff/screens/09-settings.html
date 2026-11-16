@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Trick or Tinsel — Settings</title>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gloock&amp;family=DM+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.light{--bg:#FBF5EA;--surface:#F3E9D8;--line:#E3D6C0;--text:#241A3D;--muted:#6B5F86;--body:#3D3358;--acc-text:#A4470B;--ph:#EFE3CF;--ph-stripe:rgba(36,26,61,.06);--pine:#2F7A5B;--overlay:rgba(251,245,234,.92);--dash:#C9B9A0}
+.dark{--bg:#17122B;--surface:#241C40;--line:#3A3060;--text:#F4EBD0;--muted:#B9AFCF;--body:#D9D1E6;--acc-text:#FF8A3D;--ph:#2A2148;--ph-stripe:rgba(244,235,208,.06);--pine:#9BE3A8;--overlay:rgba(23,18,43,.85);--dash:#5A4E85}
+a{color:var(--acc-text)}
+input[type=checkbox]{width:22px;height:22px;accent-color:#E0701F;margin:0}
+</style>
+</head>
+<body>
+
+
+<div class="light" style="width: 390px; height: 844px; box-sizing: border-box; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="padding: 24px 22px 10px; display: flex; align-items: center; gap: 12px">
+    <a href="Main.dc.html" aria-label="Back to tonight" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--line); color: var(--text); display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg></a>
+    <h1 style="margin: 0; font-family: 'Gloock', serif; font-weight: 400; font-size: 30px">Settings</h1>
+  </header>
+
+  <main style="flex: 1; padding: 8px 22px 0; display: flex; flex-direction: column; gap: 20px">
+    <section style="display: flex; flex-direction: column; gap: 8px">
+      <h2 style="margin: 0; font-size: 12px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted)">Appearance</h2>
+      <div role="radiogroup" aria-label="Appearance" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 16px; background: var(--surface)">
+        
+          <button role="radio" aria-checked="true" style="height: 44px; border-radius: 12px; border: 0; cursor: pointer; font: 700 14px 'DM Sans', sans-serif; color: var(--text); background: var(--bg); box-shadow: 0 1px 3px rgba(0,0,0,.12)">Light</button>
+        
+          <button role="radio" aria-checked="false" style="height: 44px; border-radius: 12px; border: 0; cursor: pointer; font: 500 14px 'DM Sans', sans-serif; color: var(--text); background: transparent; box-shadow: none">Dark</button>
+        
+          <button role="radio" aria-checked="false" style="height: 44px; border-radius: 12px; border: 0; cursor: pointer; font: 500 14px 'DM Sans', sans-serif; color: var(--text); background: transparent; box-shadow: none">Match phone</button>
+        
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 4px">
+      <h2 style="margin: 0 0 4px; font-size: 12px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted)">Your elves</h2>
+      <div style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-bottom: 1px solid var(--line)"><span style="width: 32px; height: 32px; border-radius: 16px; background: #FF8A3D; color: #17122B; font-weight: 700; display: flex; align-items: center; justify-content: center">P</span><span style="flex: 1; font-size: 16px; font-weight: 700">Pip</span><span style="font-size: 13px; color: var(--muted)">the storyteller</span></div>
+      <div style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-bottom: 1px solid var(--line)"><span style="width: 32px; height: 32px; border-radius: 16px; background: var(--pine); color: var(--bg); font-weight: 700; display: flex; align-items: center; justify-content: center">M</span><span style="flex: 1; font-size: 16px; font-weight: 700">Moss</span><span style="font-size: 13px; color: var(--muted)">the scaredy-cat</span></div>
+      <button style="align-self: flex-start; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--acc-text); font: 700 14px 'DM Sans', sans-serif">+ Add an elf</button>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 4px">
+      <h2 style="margin: 0 0 4px; font-size: 12px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted)">My AI assistant</h2>
+      <div style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-bottom: 1px solid var(--line)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--pine)" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg><span style="flex: 1; font-size: 15px">Send via</span><span style="font-size: 15px; font-weight: 700">WhatsApp</span></div>
+      <div style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-bottom: 1px solid var(--line)"><label for="agentnum" style="flex: 1; font-size: 15px">Assistant's number</label><input id="agentnum" placeholder="+44 …" style="width: 140px; border: 0px; background: transparent; text-align: right; color: var(--text); font: 500 15px &quot;DM Sans&quot;, sans-serif;"></div>
+      <label style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-bottom: 1px solid var(--line)"><span style="flex: 1; font-size: 15px">Buy kit items for me</span><input type="checkbox" checked="" style=""></label>
+      <label style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-bottom: 1px solid var(--line)"><span style="flex: 1; font-size: 15px">Remind me at set-up time <span style="color: var(--muted)">(9pm)</span></span><input type="checkbox" checked="" style=""></label>
+      <label style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-bottom: 1px solid var(--line)"><span style="flex: 1; font-size: 15px">Warn me before busy nights</span><input type="checkbox" style=""></label>
+    </section>
+  </main>
+</div>
+
+
+
+
+</body></html>

@@ -32,11 +32,11 @@ export async function GET(req: NextRequest) {
     if (s.eveningReminder && nudges.eveningSentOn !== local.date && withinWindow(local.minutes, s.eveningReminder)) {
       const [day] = await db.select().from(schema.days).where(and(eq(schema.days.familyId, u.familyId), eq(schema.days.date, local.date))).limit(1);
       if (!day || day.status === "open") {
-        await notifyUsers([u.id], { type: "nudge", title: "🧝 The elf hasn't moved yet", body: "No plan for tonight. Tap for three ideas.", url: "/" });
+        await notifyUsers([u.id], { type: "nudge", title: "The elf hasn't moved yet", body: "No plan for tonight. Tap for three ideas.", url: "/" });
         sent.evening++;
       } else if (day.status === "planned") {
         const [idea] = day.chosenIdeaId ? await db.select({ title: schema.ideas.title }).from(schema.ideas).where(eq(schema.ideas.id, day.chosenIdeaId)).limit(1) : [];
-        await notifyUsers([u.id], { type: "nudge", title: `🧝 Tonight: ${idea?.title ?? "your plan"}`, body: "Steps are ready when the kids are asleep.", url: "/" });
+        await notifyUsers([u.id], { type: "nudge", title: `Tonight: ${idea?.title ?? "your plan"}`, body: "Steps are ready when the kids are asleep.", url: "/" });
         sent.evening++;
       }
       nudges.eveningSentOn = local.date;
@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
       const yesterday = shift(local.date, -1);
       const [day] = await db.select().from(schema.days).where(and(eq(schema.days.familyId, u.familyId), eq(schema.days.date, yesterday))).limit(1);
       if (day && day.status === "planned") {
-        await notifyUsers([u.id], { type: "nudge", title: "☀️ Did the kids find it?", body: "Log the reaction and a photo so the elf learns.", url: "/" });
+        await notifyUsers([u.id], { type: "nudge", title: "Did the kids find it?", body: "Log the reaction and a photo so the elf learns.", url: "/" });
         sent.morning++;
       }
       nudges.morningSentOn = local.date;
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
   // Challenge wrap-up (UTC date; fine for a weekly contest).
   const winners = await closeEndedChallenges(now.toISOString().slice(0, 10));
   for (const w of winners) {
-    await notifyFamily(w.familyId, { type: "challenge", title: `🥇 You won ${w.challenge.title}`, body: `"${w.title}" took the top spot.`, url: `/community/challenges/${w.challenge.id}` });
+    await notifyFamily(w.familyId, { type: "challenge", title: `You won ${w.challenge.title}`, body: `"${w.title}" took the top spot.`, url: `/ideas/challenges/${w.challenge.id}` });
     await refreshBadges(w.familyId);
     sent.winners++;
     // Tell everyone who entered.
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
     const others = [...new Set(entrants.map((e) => e.familyId))].filter((f) => f !== w.familyId);
     if (others.length) {
       const members = await db.select({ id: schema.users.id }).from(schema.users).where(inArray(schema.users.familyId, others));
-      await notifyUsers(members.map((m) => m.id), { type: "challenge", title: `${w.challenge.title} has a winner`, body: `"${w.title}" came out on top. See the final board.`, url: `/community/challenges/${w.challenge.id}` });
+      await notifyUsers(members.map((m) => m.id), { type: "challenge", title: `${w.challenge.title} has a winner`, body: `"${w.title}" came out on top. See the final board.`, url: `/ideas/challenges/${w.challenge.id}` });
     }
   }
   return NextResponse.json({ ok: true, sent });

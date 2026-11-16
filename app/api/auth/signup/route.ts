@@ -30,12 +30,17 @@ export const POST = route(async (req) => {
   } else {
     familyId = newId();
     const elfName = String(b.elfName ?? "").trim().slice(0, 60);
-    await db.insert(schema.families).values({ id: familyId, handle: toHandle(elfName || displayName), inviteCode: inviteCode("FAM"), profile: { ...defaultProfile, elfName } });
+    await db.insert(schema.families).values({
+      id: familyId,
+      handle: toHandle(elfName || displayName),
+      inviteCode: inviteCode("FAM"),
+      profile: { ...defaultProfile, elves: elfName ? [{ name: elfName, personality: "", color: "elf1" }] : [] },
+    });
   }
   const id = newId();
   const timezone = typeof b.timezone === "string" && b.timezone.length < 60 ? b.timezone : "UTC";
   await db.insert(schema.users).values({ id, familyId, email, passwordHash: hashSecret(password), displayName, settings: { ...defaultSettings, timezone } });
-  if (code) await notifyFamily(familyId, { type: "coparent", title: `${displayName} joined your elf`, body: "You now share the house, the plan and the log.", url: "/elf" }, id);
+  if (code) await notifyFamily(familyId, { type: "coparent", title: `${displayName} joined your elf`, body: "You now share the house, the plan and the log.", url: "/settings" }, id);
   await setSessionCookie(id);
   return { ok: true };
 });

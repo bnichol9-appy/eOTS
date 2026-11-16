@@ -19,7 +19,7 @@ export const POST = route<{ id: string }>(async (req, { params }) => {
   await db.insert(schema.comments).values({ id: newId(), postId: post.id, userId: user.id, body: text });
   await db.update(schema.posts).set({ commentsCount: sql`${schema.posts.commentsCount} + 1` }).where(eq(schema.posts.id, post.id));
   if (post.familyId !== family.id) {
-    await notifyFamily(post.familyId, { type: "comment", title: `💬 ${user.displayName} on "${post.title}"`, body: text.slice(0, 120), url: `/community/${post.id}#comments` });
+    await notifyFamily(post.familyId, { type: "comment", title: `${user.displayName} on "${post.title}"`, body: text.slice(0, 120), url: `/ideas/${post.id}#comments` });
   }
   return getPostDetail({ familyId: family.id, userId: user.id }, post.id);
 });

@@ -2,7 +2,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { ApiError, type Session } from "./auth";
 import { newId } from "./id";
-import { generateIdeas, THREE_SLOTS, type GeneratedIdea } from "./claude";
+import { generateIdeas, ONE_SLOT, THREE_SLOTS, type GeneratedIdea } from "./claude";
 import { getOrCreateDay, getRoom, getTaste, historyDays, hydrateDay, listPosts, listRooms, usedPostIds } from "./data";
 import { loadPhotoBase64 } from "./storage";
 import { activeChallenge } from "./challenges";
@@ -27,7 +27,7 @@ async function communityCandidates(familyId: string) {
   return listPosts({ viewerFamilyId: familyId, sort: "hot", excludeFamilyId: familyId, excludePostIds: used, limit: 20 });
 }
 
-export async function runGeneration(s: Session, date: string, opts: { direction: string; focusRoomId: string | null; count: number; avoidTitles: string[]; slotHint: string; withPick: boolean }) {
+export async function runGeneration(s: Session, date: string, opts: { direction: string; focusRoomId: string | null; count: number; avoidTitles: string[]; slotHint: string; withPick: boolean; isBusy: boolean }) {
   const familyId = s.family.id;
   const [rooms, taste, history, candidates, challenge] = await Promise.all([
     listRooms(familyId),
@@ -55,6 +55,7 @@ export async function runGeneration(s: Session, date: string, opts: { direction:
     slotHint: opts.slotHint,
     communityCandidates: candidates,
     challenge: challenge ? { title: challenge.title, description: challenge.description } : null,
+    isBusy: opts.isBusy,
   });
 }
 
@@ -63,7 +64,7 @@ export async function generateDay(s: Session, date: string, direction: string, f
   const familyId = s.family.id;
   const row = await getOrCreateDay(familyId, date);
   const existing = await db.select({ title: ideas.title }).from(ideas).where(eq(ideas.dayId, row.id));
-  const out = await runGeneration(s, date, { direction, focusRoomId, count: 3, avoidTitles: existing.map((e) => e.title), slotHint: THREE_SLOTS, withPick: true });
+  const out = await runGeneration(s, date, { direction, focusRoomId, count: 3, avoidTitles: existing.map((e) => e.title), slotHint: THREE_SLOTS, withPick: true, isBusy: row.isBusy });
   await db.delete(ideas).where(and(eq(ideas.dayId, row.id), eq(ideas.favourite, false)));
   await db.update(ideas).set({ dayId: null, slot: null }).where(eq(ideas.dayId, row.id));
   await db.insert(ideas).values(out.ideas.map((i, slot) => toIdeaRow(familyId, row.id, slot, i)));
@@ -71,6 +72,22 @@ export async function generateDay(s: Session, date: string, direction: string, f
     .update(days)
     .set({ direction, chosenIdeaId: null, status: "open", generatedAt: new Date(), communityPickPostId: out.communityPickId, communityPickReason: out.communityPickWhy })
     .where(eq(days.id, row.id));
+  return hydrateDay(familyId, await getOrCreateDay(familyId, date));
+}
+
+/** Plan one night in one call and lock it in. Used by "Plan the week". */
+export async function planNight(s: Session, date: string): Promise<Day> {
+  const db = await getDb();
+  const familyId = s.family.id;
+  const row = await getOrCreateDay(familyId, date);
+  if (row.status === "planned" || row.status === "done") return hydrateDay(familyId, row);
+  const existing = await db.select({ title: ideas.title }).from(ideas).where(eq(ideas.dayId, row.id));
+  const out = await runGeneration(s, date, { direction: "", focusRoomId: null, count: 1, avoidTitles: existing.map((e) => e.title), slotHint: ONE_SLOT, withPick: false, isBusy: row.isBusy });
+  const idea = out.ideas[0];
+  if (!idea) throw new ApiError(502, "No idea came back. Try again.");
+  const id = newId();
+  await db.insert(ideas).values({ ...toIdeaRow(familyId, row.id, 0, idea), id });
+  await db.update(days).set({ chosenIdeaId: id, status: "planned", generatedAt: new Date() }).where(eq(days.id, row.id));
   return hydrateDay(familyId, await getOrCreateDay(familyId, date));
 }
 
@@ -89,6 +106,7 @@ export async function remixIdea(s: Session, date: string, ideaId: string, direct
     avoidTitles: dayIdeas.map((i) => i.title),
     slotHint: `Produce exactly 1 idea. It replaces this rejected option: "${old.title}": ${old.pitch}. Keep the other options in mind so it stays distinct: ${others.map((i) => `"${i.title}"`).join(", ")}. Leave communityPickId empty.`,
     withPick: false,
+    isBusy: row.isBusy,
   });
   const replacement = out.ideas[0];
   if (!replacement) throw new ApiError(502, "No idea came back. Try again.");
@@ -120,12 +138,15 @@ export async function attachPostToDay(familyId: string, date: string, postId: st
     title: post.title,
     pitch: post.pitch,
     roomName: post.roomType,
+    format: post.format,
+    roles: [],
     whatKidsSee: post.whatKidsSee,
     steps: post.steps,
-    supplies: post.supplies,
+    kit: post.kit,
     setupMinutes: post.setupMinutes,
     chaos: post.chaos,
     mess: post.mess,
+    spook: post.spook,
     elfNote: "",
     tags: post.tags,
   });
@@ -137,7 +158,7 @@ export async function attachIdeaToDay(familyId: string, date: string, idea: Idea
   const db = await getDb();
   const row = await getOrCreateDay(familyId, date);
   const id = newId();
-  const { id: _old, dayId: _d, slot: _s, favourite: _f, ...rest } = idea;
+  const { id: _old, dayId: _d, slot: _s, favourite: _f, createdAt: _c, ...rest } = idea;
   await db.insert(ideas).values({ id, familyId, dayId: row.id, slot: 4, favourite: false, ...rest });
   await db.update(days).set({ chosenIdeaId: id, status: "planned" }).where(eq(days.id, row.id));
   return hydrateDay(familyId, await getOrCreateDay(familyId, date));

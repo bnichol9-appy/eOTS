@@ -4,6 +4,7 @@ import { ApiError, requireSession } from "@/lib/auth";
 import { listBadges } from "@/lib/badges";
 import { getStats, listPosts } from "@/lib/data";
 import { getDb, schema } from "@/lib/db";
+import { elfNames } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -22,8 +23,8 @@ export const GET = route<{ handle: string }>(async (_req, { params }) => {
   return {
     handle: fam.handle,
     displayName: parents.map((p) => p.name).join(" & "),
-    elfName: fam.profile.elfName || "their elf",
-    elfPersonality: fam.profile.elfPersonality,
+    elfName: elfNames(fam.profile),
+    elfPersonality: fam.profile.elves.map((e) => (e.personality ? `${e.name} is ${e.personality}` : e.name)).join(". "),
     chaosLevel: fam.profile.chaosLevel,
     stats,
     badges: badges.filter((b) => b.awardedAt),

@@ -10,13 +10,13 @@ export const maxDuration = 300;
 
 export const POST = route(async (req) => {
   const { family } = await requireSession();
-  const b = await body<{ name?: string; notes?: string; photos?: string[] }>(req);
+  const b = await body<{ name?: string; notes?: string; photos?: string[]; isKidsRoom?: boolean }>(req);
   const name = String(b.name ?? "").trim().slice(0, 60);
   if (!name) bad("Give the area a name");
   const photos = Array.isArray(b.photos) ? b.photos.slice(0, 6) : [];
   const db = await getDb();
   const id = newId();
-  await db.insert(schema.rooms).values({ id, familyId: family.id, name, notes: String(b.notes ?? "").slice(0, 500) });
+  await db.insert(schema.rooms).values({ id, familyId: family.id, name, notes: String(b.notes ?? "").slice(0, 500), isKidsRoom: Boolean(b.isKidsRoom), maxNights: b.isKidsRoom ? 2 : null });
   for (const p of photos) {
     const url = await savePhoto(p, `rooms/${family.id}`);
     await db.insert(schema.roomPhotos).values({ id: newId(), roomId: id, url });
