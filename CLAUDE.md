@@ -7,7 +7,7 @@ A phone web app (installable PWA) that gives parents Elf-on-the-Shelf set-ups ea
 - Next.js App Router on Vercel, TypeScript, no CSS framework. All styling is in `app/globals.css` using the design tokens.
 - Neon Postgres via Drizzle ORM (`lib/db/schema.ts`, migrations in `drizzle/`). With no `DATABASE_URL` the app uses embedded PGlite in `./.pglite`.
 - Vercel Blob for photos (`lib/storage.ts`), local `./.uploads` fallback.
-- Claude API via `@anthropic-ai/sdk` with structured outputs. Every prompt lives in `lib/claude.ts`.
+- Claude API via `@anthropic-ai/sdk` with structured outputs. Every prompt lives in `lib/claude.ts`. The key is read from `ANTHROPIC_SHARED_API` (the shared Vercel variable) or `ANTHROPIC_API_KEY`.
 - Web push via `web-push`; nudges run from `app/api/cron/nudges` (see `vercel.json`).
 
 ## Design

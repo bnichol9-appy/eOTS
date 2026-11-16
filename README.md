@@ -36,7 +36,7 @@ The app follows the Trick or Tinsel design pack in `design/handoff/` (tokens, de
 
 1. Push this repo and import it into Vercel.
 2. In the project's **Storage** tab add the **Neon** integration (sets `DATABASE_URL`) and the **Blob** integration (sets `BLOB_READ_WRITE_TOKEN`).
-3. Add environment variables `ANTHROPIC_API_KEY`, `AUTH_SECRET` (any long random string, e.g. `openssl rand -hex 32`) and `CRON_SECRET` (another random string).
+3. Add environment variables `ANTHROPIC_SHARED_API` (or link the shared variable of that name; `ANTHROPIC_API_KEY` also works), `AUTH_SECRET` (any long random string, e.g. `openssl rand -hex 32`) and `CRON_SECRET` (another random string).
 4. For push notifications, run `npm run vapid` locally and add the two `VAPID_*` keys it prints plus `VAPID_SUBJECT` (a `mailto:` address).
 5. Deploy. The build runs `drizzle-kit migrate && next build`, so the schema is applied to Neon automatically on every deploy.
 
@@ -50,7 +50,7 @@ Open the URL on your phone and use *Add to Home Screen*.
 
 ```bash
 npm install
-cp .env.example .env     # add ANTHROPIC_API_KEY and AUTH_SECRET
+cp .env.example .env     # add ANTHROPIC_SHARED_API and AUTH_SECRET
 npm run dev              # http://localhost:3000
 ```
 
@@ -62,7 +62,7 @@ Useful scripts: `npm run db:generate` (new migration after changing `lib/db/sche
 
 | Variable | Required | What it does |
 | --- | --- | --- |
-| `ANTHROPIC_API_KEY` | yes | Claude API key. |
+| `ANTHROPIC_SHARED_API` or `ANTHROPIC_API_KEY` | yes | Claude API key. The shared variable name is read first. |
 | `AUTH_SECRET` | yes in production | Signs session and unlock cookies. |
 | `DATABASE_URL` | on Vercel | Neon Postgres connection string. |
 | `BLOB_READ_WRITE_TOKEN` | on Vercel | Vercel Blob token for photos. |

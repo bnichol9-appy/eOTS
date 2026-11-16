@@ -3,7 +3,8 @@ import { z } from "zod";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { elfNames, type Day, type DayResult, type Idea, type PostSummary, type Profile, type Room, type RoomInventory, type Spot, type Taste } from "./types";
 
-const client = new Anthropic();
+// The key comes from ANTHROPIC_SHARED_API (the shared Vercel variable) or ANTHROPIC_API_KEY.
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_SHARED_API || process.env.ANTHROPIC_API_KEY || undefined });
 const MODEL = process.env.EOTS_MODEL ?? "claude-opus-5-5";
 const BETAS = ["server-side-fallback-2026-07-01"];
 
@@ -122,11 +123,11 @@ async function parse<T extends z.ZodType>(opts: { system: string; content: Block
     return response.parsed_output as z.infer<T>;
   } catch (err) {
     if (err instanceof ClaudeError) throw err;
-    if (err instanceof Anthropic.AuthenticationError) throw new ClaudeError("Anthropic API key is missing or invalid. Set ANTHROPIC_API_KEY.");
+    if (err instanceof Anthropic.AuthenticationError) throw new ClaudeError("Anthropic API key is missing or invalid. Set ANTHROPIC_SHARED_API or ANTHROPIC_API_KEY.");
     if (err instanceof Anthropic.RateLimitError) throw new ClaudeError("Rate limited by the API. Wait a minute and try again.");
     if (err instanceof Anthropic.APIConnectionError) throw new ClaudeError("Could not reach the Anthropic API.");
     if (err instanceof Anthropic.APIError) throw new ClaudeError(`API error ${err.status}: ${err.message}`);
-    if (err instanceof Error && /resolve authentication method/i.test(err.message)) throw new ClaudeError("No Anthropic credentials found. Set ANTHROPIC_API_KEY.");
+    if (err instanceof Error && /resolve authentication method/i.test(err.message)) throw new ClaudeError("No Anthropic credentials found. Set ANTHROPIC_SHARED_API or ANTHROPIC_API_KEY.");
     throw err;
   }
 }
