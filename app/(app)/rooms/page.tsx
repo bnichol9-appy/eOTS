@@ -1,4 +1,5 @@
 "use client";
+import { samplePhoto } from "@/lib/placeholders";
 import Link from "next/link";
 import { Moon, Plus } from "lucide-react";
 import { useApp } from "@/components/AppContext";
@@ -43,11 +44,10 @@ export default function RoomsPage() {
           const isTonight = tonightRooms.has(r.name.toLowerCase());
           return (
             <Link key={r.id} href={`/rooms/${r.id}`} className="room-card">
-              <div className={`photo ${r.photos[0] ? "" : "ph"}`}>
-                {r.photos[0] && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={r.photos[0].url} alt="" />
-                )}
+              <div className="photo">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={r.photos[0]?.url ?? samplePhoto(r.name, r.isKidsRoom)} alt="" className={r.photos[0] ? undefined : "sample-img"} />
+                {!r.photos[0] && <span className="sample">Example photo</span>}
                 {isTonight ? <span className="tag">Tonight{tonight && tonight.format === "duo" && data.profile.elves.length > 1 ? " · both" : ""}</span> : r.isKidsRoom ? <span className="tag dark">Sparingly</span> : null}
               </div>
               <strong>{r.name}</strong>

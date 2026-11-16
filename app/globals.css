@@ -753,6 +753,24 @@ select.input {
   font-size: 12px;
   color: var(--muted);
 }
+.photo .sample-img {
+  filter: saturate(0.85);
+}
+.photo .sample {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  max-width: calc(100% - 20px);
+  background: var(--overlay);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .photo .corner {
   position: absolute;
   top: 12px;

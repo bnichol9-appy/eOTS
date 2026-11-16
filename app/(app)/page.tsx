@@ -1,4 +1,5 @@
 "use client";
+import { samplePhoto } from "@/lib/placeholders";
 import Link from "next/link";
 import { MessageSquare, Settings, Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -164,7 +165,7 @@ export default function TonightPage() {
             ) : null}
           </div>
 
-          <button className={`photo ${room?.photos[0] || hero.kind === "pick" ? "" : "ph"}`} onClick={() => setSheet("idea")} aria-label="Open the full plan" style={{ padding: 0, cursor: "pointer" }}>
+          <button className="photo" onClick={() => setSheet("idea")} aria-label="Open the full plan" style={{ padding: 0, cursor: "pointer" }}>
             {hero.kind === "pick" ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={hero.post.photoUrl} alt="" />
@@ -172,7 +173,11 @@ export default function TonightPage() {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={room.photos[0].url} alt="" />
             ) : (
-              <span className="caption">[{room ? `Add a photo of your ${room.name.toLowerCase()}` : roomName ? `Add your ${roomName.toLowerCase()} in Rooms` : "Add a room photo"}]</span>
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={samplePhoto(room?.name ?? roomName, room?.isKidsRoom)} alt="" className="sample-img" />
+                <span className="sample">Example photo · {room ? `add your ${room.name.toLowerCase()}` : roomName ? `add your ${roomName.toLowerCase()} in Rooms` : "add a room photo"}</span>
+              </>
             )}
             {heroIdea &&
               heroIdea.roles.map((r, i) => {
