@@ -24,7 +24,10 @@ export default function SettingsPage() {
   const [displayName, setDisplayName] = useState(data.user.displayName);
   const [handle, setHandle] = useState(data.family.handle);
   const [error, setError] = useState<string | null>(null);
-  const [sheet, setSheet] = useState<"none" | "elves" | "house" | "pin" | "family">("none");
+  const [sheet, setSheet] = useState<"none" | "elves" | "house" | "pin" | "family" | "delete">("none");
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [lockAfter, setLockAfter] = useState(() => lockAfterSeconds());
   const [pushBusy, setPushBusy] = useState(false);
   const [oldPin, setOldPin] = useState("");
@@ -193,6 +196,7 @@ export default function SettingsPage() {
         <Row label="Change PIN" onClick={() => setSheet("pin")} />
         <Row label="Lock now" onClick={actions.lock} />
         <Row label="Sign out" value={data.user.email} onClick={() => void api.logout().then(() => router.replace("/login"))} />
+        <Row label={<span className="acc">Delete account</span>} onClick={() => { setDeletePassword(""); setDeleteError(null); setSheet("delete"); }} />
       </div>
       <p className="muted small center">Trick or Tinsel · model {data.model}</p>
 
@@ -249,6 +253,42 @@ export default function SettingsPage() {
               </div>
             </>
           )}
+        </Sheet>
+      )}
+
+      {sheet === "delete" && (
+        <Sheet eyebrow="Account" title="Delete your account?" onClose={() => setSheet("none")}>
+          {data.family.members.length > 1 ? (
+            <p className="body">
+              This removes you, your posts, votes and comments. Your family&apos;s rooms, nights and elves stay with{" "}
+              {data.family.members.filter((m) => m.id !== data.user.id).map((m) => m.displayName).join(" and ")}.
+            </p>
+          ) : (
+            <p className="body">
+              This permanently deletes your account and everything in it: your rooms and photos, every planned and logged night, your elves, posts and circles. It can&apos;t be undone.
+            </p>
+          )}
+          <div className="field">
+            <span className="eyebrow">Type your password to confirm</span>
+            <input className="input" type="password" autoComplete="current-password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} aria-label="Password" />
+          </div>
+          {deleteError && <p className="error">{deleteError}</p>}
+          <button
+            className="btn outline-accent full"
+            disabled={!deletePassword || deleting}
+            onClick={() => {
+              setDeleting(true);
+              setDeleteError(null);
+              void api
+                .deleteAccount(deletePassword)
+                .then(() => router.replace("/login"))
+                .catch((e) => setDeleteError(errorMessage(e)))
+                .finally(() => setDeleting(false));
+            }}
+          >
+            {deleting ? "Deleting…" : "Delete my account"}
+          </button>
+          <button className="btn full" onClick={() => setSheet("none")}>Keep my account</button>
         </Sheet>
       )}
 

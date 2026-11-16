@@ -88,6 +88,7 @@ export const api = {
   setPin: (pin: string, currentPin?: string) => call<{ ok: true }>("POST", "/auth/pin", { pin, currentPin }),
   unlock: (pin: string) => call<{ ok: true }>("POST", "/auth/unlock", { pin }),
   lock: () => call<{ ok: true }>("POST", "/auth/lock"),
+  deleteAccount: (password: string) => call<{ ok: true; familyKept: boolean }>("DELETE", "/account", { password }),
 
   bootstrap: (today: string) => call<Bootstrap>("GET", `/bootstrap?today=${today}`),
   saveProfile: (p: Profile & { displayName?: string; handle?: string }) => call<{ profile: Profile; handle: string; displayName: string }>("PUT", "/profile", p),
