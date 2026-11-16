@@ -19,7 +19,8 @@ export const DELETE = route(async (req) => {
   await checkThrottle(user);
   const ok = verifySecret(String(b.password ?? ""), user.passwordHash);
   await recordAttempt(user, ok);
-  if (!ok) throw new ApiError(401, "Wrong password");
+  // 403, not 401: the client treats any 401 as "session locked" and would bounce to the PIN screen.
+  if (!ok) throw new ApiError(403, "Wrong password");
 
   const db = await getDb();
   const members = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.familyId, family.id));
