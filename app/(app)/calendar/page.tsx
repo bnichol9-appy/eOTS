@@ -145,23 +145,24 @@ export default function CalendarPage() {
         </span>
       </div>
 
-      <div className="card filled stack">
+      <section className="card filled cal-detail" aria-live="polite">
         <div className="eyebrow">
           {sel?.status === "done" ? "Done" : sel?.status === "planned" ? "Planned" : sel?.isBusy ? "Busy night" : "Not planned"} · {prettyDate(selected)}
         </div>
         {selIdea ? (
           <>
             <h2>{selIdea.format !== "single" ? `${formatWord(selIdea.format)}: ` : ""}{selIdea.title}</h2>
-            <p className="body">
+            <p className="body cal-pitch">
               {selIdea.pitch}
               {selIdea.kit.some((k) => !k.commonlyAtHome) ? ` Needs ${selIdea.kit.filter((k) => !k.commonlyAtHome).map((k) => k.name).join(" and ")}.` : ""}
             </p>
             {sel?.status === "planned" && selected > today && (
-              <button className="link-btn row" onClick={() => setRemind(true)}>
-                <MessageSquare {...ICON_SM} className="pine" /> Text me a reminder the night before
+              <button className="cal-remind" onClick={() => setRemind(true)}>
+                <MessageSquare {...ICON_SM} aria-hidden="true" />
+                <span>Text me a reminder the night before</span>
               </button>
             )}
-            <div className="row">
+            <div className="cal-actions">
               <button className="btn small" onClick={() => router.push(selected === today ? "/" : `/?date=${selected}`)}>
                 Open the night
               </button>
@@ -175,9 +176,9 @@ export default function CalendarPage() {
         ) : (
           <>
             <h2>{selected < today ? "Nothing logged" : "Nothing planned yet"}</h2>
-            <p className="body">{selected < today ? "The elves slept in." : "Plan this night on its own, or plan the next four from today."}</p>
+            <p className="body cal-pitch">{selected < today ? "The elves slept in." : "Plan this night on its own, or plan the next four from today."}</p>
             {selected >= today && (
-              <div className="row">
+              <div className="cal-actions">
                 <button className="btn small primary" onClick={() => void planOne(selected)} disabled={busy}>
                   Plan this night
                 </button>
@@ -188,7 +189,7 @@ export default function CalendarPage() {
             )}
           </>
         )}
-      </div>
+      </section>
 
       {remind && selIdea && (
         <AssistantSheet

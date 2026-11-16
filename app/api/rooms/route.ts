@@ -14,12 +14,12 @@ export const POST = route(async (req) => {
   const name = String(b.name ?? "").trim().slice(0, 60);
   if (!name) bad("Give the area a name");
   const photos = Array.isArray(b.photos) ? b.photos.slice(0, 6) : [];
+  // Store the photos first so a failed upload doesn't leave an empty room behind.
+  const urls: string[] = [];
+  for (const p of photos) urls.push(await savePhoto(p, `rooms/${family.id}`));
   const db = await getDb();
   const id = newId();
   await db.insert(schema.rooms).values({ id, familyId: family.id, name, notes: String(b.notes ?? "").slice(0, 500), isKidsRoom: Boolean(b.isKidsRoom), maxNights: b.isKidsRoom ? 2 : null });
-  for (const p of photos) {
-    const url = await savePhoto(p, `rooms/${family.id}`);
-    await db.insert(schema.roomPhotos).values({ id: newId(), roomId: id, url });
-  }
+  for (const url of urls) await db.insert(schema.roomPhotos).values({ id: newId(), roomId: id, url });
   return runRoomAnalysis(family.id, id);
 });

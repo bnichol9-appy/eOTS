@@ -942,27 +942,81 @@ select.input {
 }
 .legend {
   display: flex;
-  gap: 12px;
   flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 16px 0 20px;
   font-size: 13px;
+  line-height: 18px;
   color: var(--muted);
+}
+.legend > span {
+  display: inline-flex;
   align-items: center;
+  gap: 6px;
 }
 .legend i {
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  margin-right: 4px;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
 }
 .legend .box {
   display: inline-block;
+  flex: none;
   width: 14px;
   height: 14px;
   border: 1.5px solid var(--text);
   border-radius: 4px;
-  margin-right: 4px;
-  vertical-align: -2px;
+}
+
+/* Calendar: selected night */
+.cal-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px 20px 20px;
+}
+.cal-detail h2 {
+  margin: 0;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.cal-detail .cal-pitch {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.cal-remind {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 4px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--pine);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.cal-remind svg {
+  flex: none;
+}
+.cal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.cal-actions .btn.small {
+  height: 44px;
+  padding: 0 18px;
 }
 
 /* Lists & checklist */
