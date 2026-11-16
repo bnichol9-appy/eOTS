@@ -35,7 +35,7 @@ The app follows the Trick or Tinsel design pack in `design/handoff/` (tokens, de
 ## Deploy on Vercel
 
 1. Push this repo and import it into Vercel.
-2. In the project's **Storage** tab add the **Neon** integration (sets `DATABASE_URL`) and the **Blob** integration (sets `BLOB_READ_WRITE_TOKEN`).
+2. In the project's **Storage** tab add the **Neon** integration (sets `DATABASE_URL`) and the **Blob** integration (sets `BLOB_STORE_ID`, used with Vercel's OIDC token, or `BLOB_READ_WRITE_TOKEN` on older stores; public and private stores both work).
 3. Add environment variables `ANTHROPIC_SHARED_API` (or link the shared variable of that name; `ANTHROPIC_API_KEY` also works), `AUTH_SECRET` (any long random string, e.g. `openssl rand -hex 32`) and `CRON_SECRET` (another random string).
 4. For push notifications, run `npm run vapid` locally and add the two `VAPID_*` keys it prints plus `VAPID_SUBJECT` (a `mailto:` address).
 5. Deploy. The build runs `drizzle-kit migrate && next build`, so the schema is applied to Neon automatically on every deploy.
@@ -54,7 +54,7 @@ cp .env.example .env     # add ANTHROPIC_SHARED_API and AUTH_SECRET
 npm run dev              # http://localhost:3000
 ```
 
-With no `DATABASE_URL` the app uses an embedded Postgres (PGlite) in `./.pglite`, and with no `BLOB_READ_WRITE_TOKEN` photos go to `./.uploads`. So it runs locally with zero setup. To develop against your real Neon branch instead, run `vercel env pull .env.local`.
+With no `DATABASE_URL` the app uses an embedded Postgres (PGlite) in `./.pglite`, and with no Blob store configured photos go to `./.uploads`. So it runs locally with zero setup. To develop against your real Neon branch instead, run `vercel env pull .env.local`.
 
 Useful scripts: `npm run db:generate` (new migration after changing `lib/db/schema.ts`), `npm run db:migrate`, `npm run db:studio`.
 
@@ -65,7 +65,7 @@ Useful scripts: `npm run db:generate` (new migration after changing `lib/db/sche
 | `ANTHROPIC_SHARED_API` or `ANTHROPIC_API_KEY` | yes | Claude API key. The shared variable name is read first. |
 | `AUTH_SECRET` | yes in production | Signs session and unlock cookies. |
 | `DATABASE_URL` | on Vercel | Neon Postgres connection string. |
-| `BLOB_READ_WRITE_TOKEN` | on Vercel | Vercel Blob token for photos. |
+| `BLOB_STORE_ID` or `BLOB_READ_WRITE_TOKEN` | on Vercel | Vercel Blob store for photos (set by the Blob integration). |
 | `CRON_SECRET` | for nudges | Authorises the scheduled nudge job. |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | for push | Web push keys from `npm run vapid`. Without them, notifications only appear in the inbox. |
 | `EOTS_MODEL` | no | Defaults to `claude-opus-5-5`. |
