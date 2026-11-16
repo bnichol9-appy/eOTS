@@ -1,7 +1,12 @@
 node_modules/
-dist/
-web/dist/
-data/
+.next/
+out/
+.pglite/
+.uploads/
 .env
+.env*.local
+.vercel
 *.log
 .DS_Store
+*.tsbuildinfo
+next-env.d.ts
