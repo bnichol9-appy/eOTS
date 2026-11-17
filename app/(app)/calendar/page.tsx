@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useApp } from "@/components/AppContext";
-import { NightPlanner } from "@/components/home/NightPlanner";
+import { NightDetail, nightHasActions, nightState } from "@/components/calendar/NightDetail";
 import { fullDate, UpNext } from "@/components/home/Sections";
 import { Segment, Topbar, Working } from "@/components/ui";
 import { api } from "@/lib/client/api";
@@ -71,11 +71,9 @@ export default function CalendarPage() {
   }
 
   const n = nightNumber(season, selected);
-  const short = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short" });
-  const heading = selected === today ? "Tonight" : n === 1 ? `Arrival night · ${short(selected)}` : n === season.length ? `Farewell night · ${short(selected)}` : fullDate(selected);
 
   return (
-    <div className={`screen home ${selected < today && byDate.get(selected)?.status !== "planned" ? "" : "has-actions"}`}>
+    <div className={`screen home ${nightHasActions(nightState(byDate.get(selected), selected, today)) ? "has-actions" : ""}`}>
       <Topbar
         eyebrow={
           season.phase === "pre"
@@ -115,7 +113,18 @@ export default function CalendarPage() {
       )}
 
       <div ref={plannerRef} className="anchor">
-        <NightPlanner date={selected} setDate={setSelected} heading={heading} homeDate={homeDate} homeLabel={season.phase === "in" ? "Back to tonight" : "Back to arrival"} />
+        <NightDetail
+          date={selected}
+          day={byDate.get(selected)}
+          heading={selected === today ? "Tonight" : fullDate(selected)}
+          eyebrow={n === 1 ? "Arrival night" : n === season.length ? "Farewell night" : n ? `Night ${n} of ${season.length}` : "Outside the season"}
+          big={n === 1 || n === season.length}
+        />
+        {selected !== homeDate && (
+          <button className="link-btn small" onClick={() => pick(homeDate)}>
+            {season.phase === "in" ? "Back to tonight" : "Back to arrival night"}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -2947,3 +2947,64 @@ select.input {
 .sleeps-pill {
   margin-bottom: 10px;
 }
+
+/* Calendar night detail */
+.night-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.night-detail .section-head {
+  align-items: flex-end;
+}
+.nd-card {
+  gap: 14px !important;
+}
+.nd-card .photo {
+  aspect-ratio: 4 / 3;
+}
+.nd-card .list {
+  margin-top: -4px;
+}
+.nd-plan {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.nd-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+}
+.nd-learned {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--bg);
+}
+.nd-learned svg {
+  flex: none;
+  color: var(--pine);
+  margin-top: 2px;
+}
+.nd-learned .body {
+  margin: 0;
+}
+.nd-quiet {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--r-card);
+  border: 1px dashed var(--dash);
+  color: var(--muted);
+}
+.nd-quiet p {
+  margin: 0;
+  flex: 1;
+}
+.nd-card .tile {
+  background: var(--bg);
+}
