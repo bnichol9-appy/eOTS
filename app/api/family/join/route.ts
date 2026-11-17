@@ -3,6 +3,7 @@ import { body, route, bad } from "@/lib/api";
 import { requireSession } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { notifyFamily } from "@/lib/notify";
+import { notices } from "@/lib/notices";
 
 export const runtime = "nodejs";
 
@@ -21,6 +22,6 @@ export const POST = route(async (req) => {
   await db.update(schema.users).set({ familyId: target.id }).where(eq(schema.users.id, user.id));
   const [{ left }] = await db.select({ left: sql<number>`count(*)::int` }).from(schema.users).where(eq(schema.users.familyId, family.id));
   if (left === 0) await db.delete(schema.families).where(eq(schema.families.id, family.id));
-  await notifyFamily(target.id, { type: "coparent", title: `${user.displayName} joined your elf`, body: "You now share the house, the plan and the log.", url: "/settings" }, user.id);
+  await notifyFamily(target.id, notices.coparent(user.displayName), user.id);
   return { ok: true };
 });

@@ -1,6 +1,8 @@
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { newId } from "./id";
+import { APP_NAME } from "./brand";
+import { lockScreenSafe } from "./notices";
 import type { Notification } from "./types";
 
 const { notifications, pushSubscriptions, users } = schema;
@@ -12,6 +14,9 @@ export interface Notice {
   title: string;
   body: string;
   url?: string;
+  /** Lock-screen wording; falls back to title/body. Never mention elves here. */
+  pushTitle?: string;
+  pushBody?: string;
 }
 
 /** Store an in-app notification for each user and push it to their devices. */
@@ -29,7 +34,10 @@ export async function notifyUsers(userIds: string[], notice: Notice, opts: { pus
 export async function notifyFamily(familyId: string, notice: Notice, exceptUserId?: string) {
   const db = await getDb();
   const rows = await db.select({ id: users.id }).from(users).where(eq(users.familyId, familyId));
-  await notifyUsers(rows.map((r) => r.id).filter((id) => id !== exceptUserId), notice);
+  await notifyUsers(
+    rows.map((r) => r.id).filter((id) => id !== exceptUserId),
+    notice,
+  );
 }
 
 async function sendPush(userIds: string[], notice: Notice) {
@@ -41,7 +49,9 @@ async function sendPush(userIds: string[], notice: Notice) {
   const mod = (await import("web-push")) as typeof import("web-push") & { default?: typeof import("web-push") };
   const webpush = mod.default ?? mod;
   webpush.setVapidDetails(process.env.VAPID_SUBJECT ?? "mailto:hello@example.com", process.env.VAPID_PUBLIC_KEY!, process.env.VAPID_PRIVATE_KEY!);
-  const payload = JSON.stringify({ title: notice.title, body: notice.body, url: notice.url ?? "/", tag: notice.type });
+  const title = lockScreenSafe(notice.pushTitle ?? notice.title, APP_NAME);
+  const body = lockScreenSafe(notice.pushBody ?? notice.body, "You have a new update.");
+  const payload = JSON.stringify({ title, body, url: notice.url ?? "/", tag: notice.type });
   await Promise.all(
     subs.map(async (s) => {
       try {
@@ -58,7 +68,10 @@ async function sendPush(userIds: string[], notice: Notice) {
 export async function listNotifications(userId: string): Promise<{ items: Notification[]; unread: number }> {
   const db = await getDb();
   const rows = await db.select().from(notifications).where(eq(notifications.userId, userId)).orderBy(desc(notifications.createdAt)).limit(60);
-  const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(notifications).where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
+  const [{ n }] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(notifications)
+    .where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
   return {
     items: rows.map((r) => ({ id: r.id, type: r.type, title: r.title, body: r.body, url: r.url, readAt: r.readAt?.toISOString() ?? null, createdAt: r.createdAt.toISOString() })),
     unread: n,
@@ -67,12 +80,18 @@ export async function listNotifications(userId: string): Promise<{ items: Notifi
 
 export async function markAllRead(userId: string) {
   const db = await getDb();
-  await db.update(notifications).set({ readAt: new Date() }).where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
+  await db
+    .update(notifications)
+    .set({ readAt: new Date() })
+    .where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
 }
 
 export async function unreadCount(userId: string) {
   const db = await getDb();
-  const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(notifications).where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
+  const [{ n }] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(notifications)
+    .where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
   return n;
 }
 

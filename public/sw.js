@@ -9,7 +9,19 @@ self.addEventListener("push", (event) => {
   } catch {
     /* plain text push */
   }
-  event.waitUntil(self.registration.showNotification(data.title, { body: data.body, icon: "/icon-192.png", badge: "/icon-192.png", tag: data.tag, data: { url: data.url } }));
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "/icon-192.png",
+      // Small monochrome icon for Android's status bar.
+      badge: "/badge-96.png",
+      // One notification per kind: a newer nudge or upvote count replaces the older one.
+      tag: data.tag,
+      renotify: data.tag === "nudge",
+      timestamp: Date.now(),
+      data: { url: data.url },
+    }),
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {

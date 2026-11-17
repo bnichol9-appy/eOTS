@@ -4,6 +4,7 @@ import { requireSession } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { newId } from "@/lib/id";
 import { notifyUsers, pushConfigured } from "@/lib/notify";
+import { notices } from "@/lib/notices";
 
 export const runtime = "nodejs";
 
@@ -23,7 +24,7 @@ export const POST = route(async (req) => {
     .insert(schema.pushSubscriptions)
     .values({ id: newId(), userId: user.id, endpoint: b.endpoint, keys: { p256dh: b.keys.p256dh, auth: b.keys.auth } })
     .onConflictDoUpdate({ target: schema.pushSubscriptions.endpoint, set: { userId: user.id, keys: { p256dh: b.keys.p256dh, auth: b.keys.auth } } });
-  await notifyUsers([user.id], { type: "hello", title: "Reminders are on", body: "The elf will nudge you if it hasn't moved by bedtime.", url: "/" }, { pushOnly: true });
+  await notifyUsers([user.id], notices.hello(), { pushOnly: true });
   return { ok: true };
 });
 

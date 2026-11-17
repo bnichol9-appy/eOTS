@@ -1,6 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { notifyFamily } from "./notify";
+import { notices } from "./notices";
 import type { Badge } from "./types";
 
 const { badges, days, ideas, posts, circles, challenges } = schema;
@@ -77,7 +78,7 @@ export async function awardBadges(familyId: string, ctx: Ctx): Promise<string[]>
   if (fresh.length === 0) return [];
   await db.insert(badges).values(fresh.map((b) => ({ familyId, key: b.key }))).onConflictDoNothing();
   for (const b of fresh) {
-    await notifyFamily(familyId, { type: "badge", title: `New badge: ${b.name}`, body: b.description, url: "/settings/badges" });
+    await notifyFamily(familyId, notices.badge(b.name, b.description));
   }
   return fresh.map((b) => b.key);
 }

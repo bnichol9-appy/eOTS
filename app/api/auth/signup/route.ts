@@ -4,6 +4,7 @@ import { assertAuthConfig, hashSecret, inviteCode, setSessionCookie, toHandle } 
 import { getDb, schema } from "@/lib/db";
 import { newId } from "@/lib/id";
 import { notifyFamily } from "@/lib/notify";
+import { notices } from "@/lib/notices";
 import { defaultProfile, defaultSettings } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -40,7 +41,7 @@ export const POST = route(async (req) => {
   const id = newId();
   const timezone = typeof b.timezone === "string" && b.timezone.length < 60 ? b.timezone : "UTC";
   await db.insert(schema.users).values({ id, familyId, email, passwordHash: hashSecret(password), displayName, settings: { ...defaultSettings, timezone } });
-  if (code) await notifyFamily(familyId, { type: "coparent", title: `${displayName} joined your elf`, body: "You now share the house, the plan and the log.", url: "/settings" }, id);
+  if (code) await notifyFamily(familyId, notices.coparent(displayName), id);
   await setSessionCookie(id);
   return { ok: true };
 });

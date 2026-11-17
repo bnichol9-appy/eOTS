@@ -2791,9 +2791,29 @@ select.input {
   align-items: center;
   justify-content: center;
 }
-.notif-row.unread .notif-icon {
+.notif-icon.tone-people {
+  background: var(--pine);
+  color: var(--bg);
+}
+.notif-icon.tone-win {
   background: var(--accent);
   color: var(--on-accent);
+}
+.notif-icon.tone-plain {
+  background: var(--surface);
+  color: var(--text);
+}
+.notif-row:not(.unread) .notif-icon {
+  opacity: 0.75;
+}
+.notif-kind {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.notif-row.unread strong {
+  color: var(--text);
 }
 .unread-dot {
   flex: none;

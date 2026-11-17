@@ -7,6 +7,7 @@ import { getOrCreateDay, getPostDetail, hydrateDay, refreshBadges, toIdea } from
 import { getDb, schema } from "@/lib/db";
 import { newId } from "@/lib/id";
 import { notifyFamily } from "@/lib/notify";
+import { notices } from "@/lib/notices";
 import { loadPhotoBase64 } from "@/lib/storage";
 import { elfNames } from "@/lib/types";
 
@@ -71,7 +72,7 @@ export const POST = route<{ date: string }>(async (req, { params }) => {
       .where(eq(schema.posts.id, remakeOfPostId))
       .returning({ familyId: schema.posts.familyId, title: schema.posts.title });
     if (orig && orig.familyId !== family.id) {
-      await notifyFamily(orig.familyId, { type: "remake", title: `${elfNames(family.profile)} remade "${orig.title}"`, body: "See how it turned out in their house.", url: `/ideas/${id}` });
+      await notifyFamily(orig.familyId, notices.remake(elfNames(family.profile), orig.title, id));
       await refreshBadges(orig.familyId);
     }
   }

@@ -5,6 +5,7 @@ import { getPostDetail } from "@/lib/data";
 import { getDb, schema } from "@/lib/db";
 import { newId } from "@/lib/id";
 import { notifyFamily } from "@/lib/notify";
+import { notices } from "@/lib/notices";
 
 export const runtime = "nodejs";
 
@@ -19,7 +20,7 @@ export const POST = route<{ id: string }>(async (req, { params }) => {
   await db.insert(schema.comments).values({ id: newId(), postId: post.id, userId: user.id, body: text });
   await db.update(schema.posts).set({ commentsCount: sql`${schema.posts.commentsCount} + 1` }).where(eq(schema.posts.id, post.id));
   if (post.familyId !== family.id) {
-    await notifyFamily(post.familyId, { type: "comment", title: `${user.displayName} on "${post.title}"`, body: text.slice(0, 120), url: `/ideas/${post.id}#comments` });
+    await notifyFamily(post.familyId, notices.comment(user.displayName.split(" ")[0], post.title, text, post.id));
   }
   return getPostDetail({ familyId: family.id, userId: user.id }, post.id);
 });

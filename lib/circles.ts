@@ -3,6 +3,7 @@ import { getDb, schema } from "./db";
 import { ApiError, inviteCode } from "./auth";
 import { newId } from "./id";
 import { notifyFamily } from "./notify";
+import { notices } from "./notices";
 import { elfNames, type Circle } from "./types";
 
 const { circles, circleMembers, families, users, days, ideas } = schema;
@@ -86,7 +87,7 @@ export async function joinCircle(familyId: string, code: string, joinerName: str
   if (!c) throw new ApiError(404, "No circle with that code");
   await db.insert(circleMembers).values({ circleId: c.id, familyId }).onConflictDoNothing();
   if (c.ownerFamilyId !== familyId) {
-    await notifyFamily(c.ownerFamilyId, { type: "circle_join", title: `${joinerName} joined ${c.name}`, body: "Their elf's nights will show up in your circle.", url: `/ideas/circles/${c.id}` });
+    await notifyFamily(c.ownerFamilyId, notices.circleJoin(joinerName, c.name, c.id));
   }
   return getCircle(familyId, c.id);
 }

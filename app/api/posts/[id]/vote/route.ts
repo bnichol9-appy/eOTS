@@ -4,6 +4,7 @@ import { ApiError, requireSession } from "@/lib/auth";
 import { refreshBadges } from "@/lib/data";
 import { getDb, schema } from "@/lib/db";
 import { notifyFamily, UPVOTE_MILESTONES } from "@/lib/notify";
+import { notices } from "@/lib/notices";
 
 export const runtime = "nodejs";
 
@@ -22,7 +23,7 @@ export const POST = route<{ id: string }>(async (_req, { params }) => {
   await db.insert(schema.votes).values({ userId: user.id, postId: post.id });
   const [u] = await db.update(schema.posts).set({ upvotes: sql`${schema.posts.upvotes} + 1` }).where(eq(schema.posts.id, post.id)).returning({ upvotes: schema.posts.upvotes });
   if (post.familyId !== family.id && UPVOTE_MILESTONES.includes(u.upvotes)) {
-    await notifyFamily(post.familyId, { type: "upvotes", title: `${u.upvotes} upvote${u.upvotes === 1 ? "" : "s"} on "${post.title}"`, body: u.upvotes === 1 ? "Someone liked your setup." : "Other parents are into it.", url: `/ideas/${post.id}` });
+    await notifyFamily(post.familyId, notices.upvotes(u.upvotes, post.title, post.id));
     await refreshBadges(post.familyId);
   }
   return { voted: true, upvotes: u.upvotes };
