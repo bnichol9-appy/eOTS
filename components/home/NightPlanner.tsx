@@ -7,7 +7,7 @@ import { AssistantSheet } from "@/components/AssistantSheet";
 import { IdeaSheet } from "@/components/IdeaSheet";
 import { PhotoPicker } from "@/components/PhotoPicker";
 import { Actions, Checkbox, Chips, ElfAvatar, ElfStack, ICON_SM, Pin, Segment, Sheet, Tiles, Working, rolesToElves } from "@/components/ui";
-import { friendlyTime, remindMessage } from "@/lib/assistant";
+import { datedRemindMessage, friendlyTime } from "@/lib/assistant";
 import { api, type DayResponse } from "@/lib/client/api";
 import { errorMessage, localDate, REACTIONS, shiftDate } from "@/lib/client/utils";
 import { samplePhoto } from "@/lib/placeholders";
@@ -146,6 +146,9 @@ export function NightPlanner({
   const kit = heroIdea?.kit ?? [];
   const toBuy = kit.filter((k) => !(day.kitState[k.name.trim().toLowerCase()] ?? k.commonlyAtHome)).length;
   const setupTime = data.user.settings.eveningReminder ?? "21:00";
+  const whenWord =
+    date === today ? "tonight" : date === shiftDate(today, 1) ? "tomorrow" : `on ${new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" })}`;
+  const whenShort = date === today ? "" : date === shiftDate(today, 1) ? "tomorrow " : `${new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { weekday: "short" })} `;
   const pinElves = heroIdea ? rolesToElves(heroIdea.roles, elves) : elves;
 
   return (
@@ -238,7 +241,8 @@ export function NightPlanner({
               <span className="acc bold">›</span>
             </Link>
             <button className="pill" onClick={() => setSheet("remind")}>
-              <MessageSquare {...ICON_SM} className="pine" /> Remind me {friendlyTime(setupTime)}
+              <MessageSquare {...ICON_SM} className="pine" /> Remind me {whenShort}
+              {friendlyTime(setupTime)}
             </button>
           </div>
 
@@ -439,8 +443,9 @@ export function NightPlanner({
 
       {sheet === "remind" && hero && (
         <AssistantSheet
-          title={`Remind me at ${friendlyTime(setupTime)}`}
-          message={remindMessage(
+          title={`Remind me ${whenWord} at ${friendlyTime(setupTime)}`}
+          message={datedRemindMessage(
+            whenWord,
             friendlyTime(setupTime),
             hero.kind === "idea" ? hero.idea.title : hero.post.title,
             roomName || "house",

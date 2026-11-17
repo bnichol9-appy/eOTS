@@ -37,6 +37,11 @@ export function remindMessage(time: string, title: string, room: string, items: 
   return `Remind me at ${time} tonight: elf set-up, ${title} in the ${room}.${items.length ? ` Kit: ${items.join(", ")}.` : ""}`;
 }
 
+/** "when" is "tonight", "tomorrow" or "on Sat 5 Dec". */
+export function datedRemindMessage(when: string, time: string, title: string, room: string, items: string[]) {
+  return `Remind me ${when} at ${time}: elf set-up, ${title} in the ${room}.${items.length ? ` Kit: ${items.join(", ")}.` : ""}`;
+}
+
 export function nightBeforeMessage(time: string, title: string, items: string[]) {
   return `Remind me tomorrow at ${time}: ${title}.${items.length ? ` Needs ${items.join(", ")}.` : ""}`;
 }

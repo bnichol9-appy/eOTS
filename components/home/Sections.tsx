@@ -191,7 +191,23 @@ export function BuildUpList({ steps }: { steps: BuildStep[] }) {
 
 /* ---------- The next few nights ---------- */
 
-export function UpNext({ title, from, count, season, selected, onPick }: { title: string; from: string; count: number; season: Season; selected: string; onPick: (date: string) => void }) {
+export function UpNext({
+  title,
+  from,
+  count,
+  season,
+  selected,
+  onPick,
+  calendarLink = true,
+}: {
+  title: string;
+  from: string;
+  count: number;
+  season: Season;
+  selected: string;
+  onPick: (date: string) => void;
+  calendarLink?: boolean;
+}) {
   const { data, actions } = useApp();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -204,7 +220,7 @@ export function UpNext({ title, from, count, season, selected, onPick }: { title
     setBusy(true);
     setError(null);
     try {
-      const r = await api.planDates(unplanned);
+      const r = await api.planDates(unplanned.slice(0, 7));
       for (const d of r.days) actions.setDay(d);
       actions.toast(`${r.days.length} night${r.days.length === 1 ? "" : "s"} planned.`);
     } catch (e) {
@@ -220,9 +236,11 @@ export function UpNext({ title, from, count, season, selected, onPick }: { title
       <SectionHead
         title={title}
         action={
-          <Link href="/calendar" className="link-btn small">
-            Calendar
-          </Link>
+          calendarLink && (
+            <Link href="/calendar" className="link-btn small">
+              Calendar
+            </Link>
+          )
         }
       />
       <div className="nights" role="list">
@@ -273,7 +291,7 @@ export function UpNext({ title, from, count, season, selected, onPick }: { title
       {error && <p className="error">{error}</p>}
       {unplanned.length > 1 && (
         <button className="btn secondary full" onClick={() => void planAll()} disabled={busy}>
-          {busy ? "The elves are plotting…" : `Plan the ${unplanned.length} open nights`}
+          {busy ? "The elves are plotting…" : unplanned.length > 7 ? "Plan the next 7 open nights" : `Plan the ${unplanned.length} open nights`}
         </button>
       )}
     </section>
