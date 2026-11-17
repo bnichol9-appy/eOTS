@@ -1,2 +1,2 @@
-/** The product name. The installed home-screen label stays the kid-proof "eOTS" (see app/manifest.ts). */
+/** The product name, also the installed home-screen label (app/manifest.ts, app/layout.tsx). public/sw.js repeats it as the fallback push title. */
 export const APP_NAME = "Shelf Life";

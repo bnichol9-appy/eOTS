@@ -4,7 +4,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: APP_NAME,
-    short_name: "eOTS",
+    short_name: APP_NAME,
     description: "One elf set-up per night, built from photos of your own house.",
     start_url: "/",
     display: "standalone",

@@ -1,6 +1,6 @@
 # Shelf Life (eOTS)
 
-A PIN-locked Elf on the Shelf planner that gives you one set-up per night for **your** house, built from photos of your rooms, with one to three elves, a kit bag, an AI-assistant hand-off, and a community of other parents. "eOTS" is the kid-proof name on the home screen.
+A PIN-locked Elf on the Shelf planner that gives you one set-up per night for **your** house, built from photos of your rooms, with one to three elves, a kit bag, an AI-assistant hand-off, and a community of other parents. It installs to the home screen as "Shelf Life".
 
 The elves are night-shift mischief-makers: big, physical, gently spooky, never scary. Toilet-papered hallways, zip lines across the kitchen, séances in the bathroom.
 

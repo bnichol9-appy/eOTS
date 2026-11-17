@@ -1,9 +1,9 @@
-// eOTS service worker: shows push notifications and opens the app on tap.
+// Shelf Life service worker: shows push notifications and opens the app on tap.
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
 self.addEventListener("push", (event) => {
-  let data = { title: "eOTS", body: "", url: "/", tag: "eots" };
+  let data = { title: "Shelf Life", body: "", url: "/", tag: "eots" };
   try {
     data = { ...data, ...event.data.json() };
   } catch {

@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: APP_NAME,
   description: "One elf set-up per night, built from photos of your own house.",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "eOTS", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: "default" },
   icons: { icon: "/icon.svg", apple: "/icon-192.png" },
 };
 
