@@ -2281,3 +2281,123 @@ select.input {
 .join-card .challenge-icon {
   margin-bottom: 4px;
 }
+
+/* Settings */
+.family-card {
+  gap: 16px !important;
+}
+.family-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.family-top .grow {
+  min-width: 0;
+}
+.family-elves {
+  display: flex;
+  flex: none;
+}
+.family-elves .elf + .elf {
+  margin-left: -12px;
+  box-shadow: 0 0 0 3px var(--surface);
+}
+.set-row {
+  gap: 14px;
+  min-height: 56px;
+  cursor: pointer;
+}
+.set-row:disabled {
+  cursor: default;
+  opacity: 1;
+}
+.row-icon {
+  flex: none;
+  color: var(--muted);
+}
+.row-label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 16px;
+  color: var(--text);
+}
+.row-sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+.set-row .right {
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row-chevron {
+  flex: none;
+  margin-left: -6px;
+}
+.set-row .text {
+  color: var(--text);
+}
+.set-select {
+  flex: none;
+  width: auto;
+  max-width: 150px;
+  min-height: 40px;
+  padding: 6px 12px;
+  margin-left: auto;
+  text-align: right;
+}
+.switch {
+  flex: none;
+  width: 48px;
+  height: 28px;
+  border-radius: 14px;
+  background: var(--line);
+  border: 1px solid var(--dash);
+  position: relative;
+  transition: background 200ms ease-out;
+}
+.switch i {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 200ms ease-out;
+}
+.switch.on {
+  background: var(--pine);
+  border-color: var(--pine);
+}
+.switch.on i {
+  transform: translateX(20px);
+}
+.set-row:disabled .switch {
+  opacity: 0.5;
+}
+.rule-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.rule-tile {
+  border: 0;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.rule-tile strong {
+  font-size: 15px;
+  line-height: 1.25;
+}
