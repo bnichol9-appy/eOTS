@@ -1,57 +1,129 @@
 "use client";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { Camera, ChevronRight, Crown, Share2, ThumbsUp, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
-import { PostCard } from "@/components/PostCard";
+import { SectionHead } from "@/components/home/Sections";
 import { Topbar, Working } from "@/components/ui";
 import { api } from "@/lib/client/api";
-import { errorMessage, localDate, prettyDate } from "@/lib/client/utils";
+import { errorMessage, localDate } from "@/lib/client/utils";
 import type { Challenge, PostSummary } from "@/lib/types";
 
+const SM = { size: 18, strokeWidth: 1.8 };
+const short = (d: string) => new Date(`${d}T12:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+
+/** One challenge: what it is, how to enter, the winner, and the leaderboard. */
 export default function ChallengePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [entries, setEntries] = useState<PostSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const today = localDate();
 
   useEffect(() => {
     api
-      .challenge(id, localDate())
+      .challenge(id, today)
       .then((r) => {
         setChallenge(r.challenge);
         setEntries(r.entries);
       })
       .catch((e) => setError(errorMessage(e)));
-  }, [id]);
+  }, [id, today]);
 
-  function patch(pid: string, fn: (p: PostSummary) => PostSummary) {
-    setEntries((ps) => ps.map((p) => (p.id === pid ? fn(p) : p)));
-  }
+  if (error)
+    return (
+      <div className="screen">
+        <Topbar title="Challenge" back={() => router.back()} />
+        <p className="error">{error}</p>
+      </div>
+    );
+  if (!challenge)
+    return (
+      <div className="screen">
+        <Working label="Loading…" />
+      </div>
+    );
 
-  if (error) return <div className="screen"><p className="error">{error}</p></div>;
-  if (!challenge) return <div className="screen"><Working label="Loading…" /></div>;
+  const daysLeft = Math.max(0, Math.round((Date.parse(`${challenge.endsOn}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000));
+  const status = challenge.status === "active" ? (daysLeft === 0 ? "Last day" : `${daysLeft} day${daysLeft === 1 ? "" : "s"} left`) : challenge.status === "upcoming" ? "Coming up" : "Finished";
 
   return (
-    <div className="screen">
-      <Topbar eyebrow={`${prettyDate(challenge.startsOn)} to ${prettyDate(challenge.endsOn)} · ${challenge.status === "active" ? "open now" : challenge.status}`} title={challenge.title} back={() => router.back()} />
-      <div className="card filled stack">
-        <p className="body">{challenge.description}</p>
-        {challenge.status === "active" && <p className="small muted">To enter: finish a night, add a photo, tap Share and tick the challenge box. Most upvotes when the week ends wins.</p>}
-        {challenge.winner && (
-          <p className="body">
-            Winner: <Link href={`/ideas/${challenge.winner.postId}`}>{challenge.winner.title}</Link> by <Link href={`/ideas/elf/${challenge.winner.handle}`}>{challenge.winner.elfName}</Link>
-          </p>
-        )}
-      </div>
-      <div className="eyebrow">Leaderboard</div>
-      {entries.length === 0 && <p className="muted small">No entries yet. Be first.</p>}
-      {entries.map((p, i) => (
-        <div key={p.id} className="ranked">
-          <span className="rank">{i === 0 ? "1st" : i === 1 ? "2nd" : i === 2 ? "3rd" : `#${i + 1}`}</span>
-          <PostCard post={p} onVote={(x) => void api.vote(x.id).then((v) => patch(x.id, (q) => ({ ...q, upvotes: v.upvotes, viewer: { ...q.viewer, voted: v.voted } })))} onSave={(x) => void api.savePost(x.id).then((v) => patch(x.id, (q) => ({ ...q, viewer: { ...q.viewer, saved: v.saved } })))} />
+    <div className="screen home">
+      <Topbar eyebrow={`Challenge · ${short(challenge.startsOn)} to ${short(challenge.endsOn)}`} title={challenge.title} back={() => router.back()} />
+
+      <section className="countdown" aria-label="About this challenge">
+        <div className="family-top">
+          <span className="challenge-icon big" aria-hidden="true">
+            <Trophy {...SM} size={24} />
+          </span>
+          <div className="grow">
+            <div className="eyebrow">{status}</div>
+            <h2 className="card-title">
+              {challenge.entries} {challenge.entries === 1 ? "entry" : "entries"}
+            </h2>
+          </div>
         </div>
-      ))}
+        <p className="body">{challenge.description}</p>
+        {challenge.winner && (
+          <Link href={`/ideas/${challenge.winner.postId}`} className="list-row set-row winner-row">
+            <Crown {...SM} className="row-icon acc" aria-hidden="true" />
+            <span className="row-label">
+              <span className="row-sub">Winner</span>
+              <strong>
+                {challenge.winner.title} by {challenge.winner.elfName}
+              </strong>
+            </span>
+            <ChevronRight {...SM} className="muted" aria-hidden="true" />
+          </Link>
+        )}
+      </section>
+
+      {challenge.status !== "ended" && (
+        <section aria-label="How to enter">
+          <SectionHead title="How to enter" />
+          <div className="list">
+            {[
+              { icon: Camera, text: "Do a night that fits the theme and log it with a photo" },
+              { icon: Share2, text: "Tap Share with other elves and tick the challenge box" },
+              { icon: ThumbsUp, text: "Most upvotes when the week ends wins the Champion badge" },
+            ].map((s, i) => (
+              <div key={i} className="list-row set-row">
+                <s.icon {...SM} className="row-icon" aria-hidden="true" />
+                <span className="row-label">{s.text}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section aria-label="Leaderboard">
+        <SectionHead title="Leaderboard" />
+        {entries.length === 0 ? (
+          <p className="muted small">No entries yet. Be the first.</p>
+        ) : (
+          <div className="idea-list">
+            {entries.map((p, i) => (
+              <Link key={p.id} href={`/ideas/${p.id}`} className="idea-row">
+                <span className={`rank-num ${i < 3 ? "top" : ""}`}>{i + 1}</span>
+                <span className="idea-thumb">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={p.photoUrl} alt="" loading="lazy" />
+                </span>
+                <span className="grow">
+                  <span className="night-meta">
+                    {p.author.elfName} · {p.roomType}
+                  </span>
+                  <span className="night-title">{p.title}</span>
+                </span>
+                <span className="votes">
+                  <ThumbsUp size={14} strokeWidth={1.8} /> {p.upvotes}
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

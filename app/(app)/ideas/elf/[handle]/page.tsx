@@ -1,16 +1,21 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useApp } from "@/components/AppContext";
+import { SectionHead } from "@/components/home/Sections";
 import { BadgeIcon } from "@/components/icons";
-import { PostCard } from "@/components/PostCard";
-import { Topbar, Working } from "@/components/ui";
+import { PostMini } from "@/components/PostMini";
+import { Tiles, Topbar, Working } from "@/components/ui";
 import { api, type ElfProfile } from "@/lib/client/api";
 import { errorMessage } from "@/lib/client/utils";
-import type { PostSummary } from "@/lib/types";
 
+const CHAOS = ["", "Gentle", "Playful", "Cheeky", "Chaotic", "Total mayhem"];
+
+/** An elf's public page: who they are, how busy they've been, badges and what they've shared. */
 export default function ElfPage() {
   const { handle } = useParams<{ handle: string }>();
   const router = useRouter();
+  const { data } = useApp();
   const [elf, setElf] = useState<ElfProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,48 +26,73 @@ export default function ElfPage() {
       .catch((e) => setError(errorMessage(e)));
   }, [handle]);
 
-  function patch(id: string, fn: (p: PostSummary) => PostSummary) {
-    setElf((e) => e && { ...e, posts: e.posts.map((p) => (p.id === id ? fn(p) : p)) });
-  }
+  if (error)
+    return (
+      <div className="screen">
+        <Topbar title="Elf" back={() => router.back()} />
+        <p className="error">{error}</p>
+      </div>
+    );
+  if (!elf)
+    return (
+      <div className="screen">
+        <Working label="Loading…" />
+      </div>
+    );
 
-  if (error) return <div className="screen"><p className="error">{error}</p></div>;
-  if (!elf) return <div className="screen"><Working label="Loading…" /></div>;
-
-  const chaosWords = ["", "Gentle", "Playful", "Cheeky", "Chaotic", "Total mayhem"];
+  const mine = handle === data.family.handle;
   return (
-    <div className="screen">
-      <Topbar eyebrow={`${elf.displayName} · @${elf.handle}`} title={elf.elfName} back={() => router.back()} />
-      <div className="card filled stack">
-        {elf.elfPersonality && <p className="body">{elf.elfPersonality}</p>}
-        <div className="stats">
-          {[
-            [elf.stats.nightsDone, "nights"],
-            [elf.stats.streak, "streak"],
-            [elf.stats.posts, "shared"],
-            [elf.stats.upvotesReceived, "upvotes"],
-          ].map(([n, l]) => (
-            <div key={l} className="tile">
-              <strong>{n}</strong>
-              <div className="meta">{l}</div>
-            </div>
-          ))}
+    <div className="screen home">
+      <Topbar eyebrow={mine ? "Your elf page" : "Elf page"} title={elf.elfName} back={() => router.back()} />
+
+      <section className="countdown" aria-label="About">
+        <div className="family-top">
+          <span className="elf xl elf1 elf-hero" aria-hidden="true">
+            {elf.elfName.charAt(0).toUpperCase()}
+          </span>
+          <div className="grow">
+            <div className="eyebrow">@{elf.handle}</div>
+            <h2 className="card-title">Run by {elf.displayName}</h2>
+            <p className="muted small">Chaos setting: {CHAOS[elf.chaosLevel] ?? "Cheeky"}</p>
+          </div>
         </div>
-        <p className="small muted">Chaos setting: {chaosWords[elf.chaosLevel]}</p>
-        {elf.badges.length > 0 && (
-          <div className="badge-row">
+        {elf.elfPersonality && <p className="quote">{elf.elfPersonality}</p>}
+      </section>
+
+      <Tiles
+        items={[
+          { label: "Nights", value: String(elf.stats.nightsDone) },
+          { label: "Streak", value: String(elf.stats.streak) },
+          { label: "Shared", value: String(elf.stats.posts) },
+          { label: "Upvotes", value: String(elf.stats.upvotesReceived) },
+        ]}
+      />
+
+      {elf.badges.length > 0 && (
+        <section aria-label="Badges">
+          <SectionHead title="Badges" action={<span className="muted small">{elf.badges.length}</span>} />
+          <div className="hooks">
             {elf.badges.map((b) => (
-              <span key={b.key} title={b.name} aria-label={b.name}>
-                <BadgeIcon name={b.icon} size={20} />
+              <span key={b.key} className="tag line badge-tag">
+                <BadgeIcon name={b.icon} size={16} /> {b.name}
               </span>
             ))}
           </div>
+        </section>
+      )}
+
+      <section aria-label="Set-ups">
+        <SectionHead title="Set-ups" action={elf.posts.length ? <span className="muted small">{elf.posts.length}</span> : undefined} />
+        {elf.posts.length === 0 ? (
+          <p className="muted small">{mine ? "Nothing shared yet. Log a night with a photo and tap Share to put it here." : "Nothing shared yet."}</p>
+        ) : (
+          <div className="post-grid" role="list">
+            {elf.posts.map((p) => (
+              <PostMini key={p.id} post={p} grid />
+            ))}
+          </div>
         )}
-      </div>
-      <div className="eyebrow">Setups</div>
-      {elf.posts.length === 0 && <p className="muted small">Nothing shared yet.</p>}
-      {elf.posts.map((p) => (
-        <PostCard key={p.id} post={p} onVote={(post) => void api.vote(post.id).then((r) => patch(post.id, (x) => ({ ...x, upvotes: r.upvotes, viewer: { ...x.viewer, voted: r.voted } })))} onSave={(post) => void api.savePost(post.id).then((r) => patch(post.id, (x) => ({ ...x, viewer: { ...x.viewer, saved: r.saved } })))} />
-      ))}
+      </section>
     </div>
   );
 }

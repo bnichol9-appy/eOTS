@@ -2546,3 +2546,210 @@ select.input {
   border-radius: var(--r-card);
   background: var(--surface);
 }
+
+/* Detail screens */
+.challenge-icon.big {
+  width: 52px;
+  height: 52px;
+  border-radius: 26px;
+  flex: none;
+}
+.author-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  color: var(--text);
+}
+.btn.on-pine {
+  border-color: var(--pine);
+  color: var(--pine);
+}
+.comment {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.comment-avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+.comment-body {
+  flex: 1;
+  min-width: 0;
+}
+.comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+.comment-meta a {
+  color: var(--text);
+  font-weight: 700;
+}
+.comment-meta .link-btn {
+  margin-left: auto;
+  min-width: 44px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+.comment-body .body {
+  margin: 2px 0 0;
+}
+.comment-box {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.comment-box .input {
+  flex: 1;
+}
+.icon-btn.send {
+  flex: none;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.icon-btn.send:disabled {
+  opacity: 0.45;
+}
+.elf-hero {
+  width: 64px;
+  height: 64px;
+  font-size: 26px;
+  flex: none;
+}
+.badge-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.badge-tag svg {
+  color: var(--acc-text);
+}
+.post-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.post-mini.in-grid {
+  width: auto;
+}
+.post-mini .photo .sample {
+  font-size: 11px;
+}
+.challenge-hero {
+  color: var(--text);
+}
+.winner-row {
+  border-top: 1px solid var(--line);
+  border-bottom: 0;
+}
+.rank-num {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+.rank-num.top {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.votes {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--text);
+}
+.push-prompt {
+  border-color: var(--dash);
+  border-style: dashed;
+}
+.notif-row {
+  align-items: flex-start;
+  padding: 14px 0;
+}
+.notif-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--acc-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.notif-row.unread .notif-icon {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.unread-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--accent);
+  margin-top: 6px;
+}
+.badge-card {
+  opacity: 1;
+  padding: 14px;
+  border-radius: var(--r-card);
+  border: 1px dashed var(--dash);
+  background: transparent;
+}
+.badge-card.earned {
+  border: 1px solid var(--surface);
+  background: var(--surface);
+}
+.badge-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--dash);
+  color: var(--muted);
+}
+.badge-card.earned .badge-icon {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+.badge-card.earned .badge-icon svg,
+.badge-card .badge-icon svg {
+  color: inherit;
+}
+.kids-switch {
+  border-bottom: 0;
+}
+.push-prompt .muted.small {
+  white-space: normal;
+}
