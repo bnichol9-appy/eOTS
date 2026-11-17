@@ -2401,3 +2401,94 @@ select.input {
   font-size: 15px;
   line-height: 1.25;
 }
+
+/* Kit */
+.kit-bar {
+  background: var(--accent);
+}
+.shop-row .row-label .bold {
+  font-weight: 700;
+}
+.done-text {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.shop-row .checkbox:disabled {
+  opacity: 1;
+}
+.at-home {
+  margin-top: 4px;
+}
+.at-home summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--acc-text);
+  list-style: none;
+}
+.at-home summary::-webkit-details-marker {
+  display: none;
+}
+.kit-nights {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.kit-night {
+  border-radius: var(--r-card);
+  background: var(--surface);
+  overflow: hidden;
+}
+.kit-night-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 12px 10px 8px;
+  color: var(--text);
+}
+.kit-count {
+  flex: none;
+  font-size: 13px;
+  color: var(--muted);
+}
+.kit-count.need {
+  color: var(--acc-text);
+  font-weight: 700;
+}
+.kit-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 14px 14px;
+}
+.kit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.kit-chip.have {
+  border-color: var(--line);
+  background: transparent;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.kit-chip i {
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  flex: none;
+}
