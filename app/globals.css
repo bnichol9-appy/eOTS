@@ -2753,3 +2753,91 @@ select.input {
 .push-prompt .muted.small {
   white-space: normal;
 }
+
+/* Login */
+.login {
+  gap: 20px;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
+}
+.login-head .brand {
+  margin-top: 2px;
+}
+.login-photos {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 8px;
+  height: 128px;
+}
+.login-photos img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+}
+.sleeps-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+.auth-card {
+  gap: 14px !important;
+}
+.auth-card .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.auth-card .input {
+  background: var(--bg);
+}
+.password-wrap {
+  position: relative;
+  display: block;
+}
+.password-wrap .input {
+  width: 100%;
+  padding-right: 52px;
+}
+.password-toggle {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.invited-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--pine);
+  color: var(--text);
+  font-size: 14px;
+}
+.invited-note svg {
+  color: var(--pine);
+  flex: none;
+}
+.family-code .field {
+  margin-top: 4px;
+}
+.auth-card > .btn.primary {
+  margin-top: 6px;
+}
+.sleeps-pill {
+  margin-bottom: 10px;
+}

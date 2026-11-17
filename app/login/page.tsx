@@ -2,6 +2,8 @@
 import { APP_NAME } from "@/lib/brand";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Eye, EyeOff, Moon, Users } from "lucide-react";
+import { Garland, Segment } from "@/components/ui";
 import { api } from "@/lib/client/api";
 import { errorMessage, timezone } from "@/lib/client/utils";
 
@@ -16,6 +18,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [invited, setInvited] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Arriving from an invite link: /login?mode=signup&code=FAM-XXXX-XXXX
   useEffect(() => {
@@ -43,37 +46,105 @@ export default function LoginPage() {
     }
   }
 
+  const today = new Date();
+  const year = today.getMonth() === 11 && today.getDate() > 24 ? today.getFullYear() + 1 : today.getFullYear();
+  const sleeps = Math.ceil((new Date(year, 11, 1).getTime() - today.getTime()) / 86_400_000);
+  const signup = mode === "signup";
+
   return (
-    <div className="screen full lock">
-      <div className="brand">{APP_NAME}</div>
-      <h1>{mode === "login" ? "Welcome back" : invited ? "Join the night shift" : "Start the night shift"}</h1>
-      <p className="muted">One elf set-up per night, built from photos of your own house.</p>
-      <form className="auth-form" onSubmit={submit}>
-        {mode === "signup" && (
+    <div className="screen login">
+      <header className="login-head">
+        <Garland />
+        <div className="brand">{APP_NAME}</div>
+      </header>
+
+      <div className="login-photos" aria-hidden="true">
+        {["living-room", "hallway", "kitchen"].map((n) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={n} src={`/placeholders/${n}.jpg`} alt="" />
+        ))}
+      </div>
+
+      <div>
+        {sleeps > 0 && sleeps < 60 && (
+          <span className="sleeps-pill">
+            <Moon size={14} strokeWidth={1.8} aria-hidden="true" /> {sleeps} {sleeps === 1 ? "sleep" : "sleeps"} until the elves arrive
+          </span>
+        )}
+        <h1 className="onb-title">{!signup ? "Welcome back" : invited ? "Join the night shift" : "Start the night shift"}</h1>
+        <p className="body">One elf set-up per night, built from photos of your own house.</p>
+      </div>
+
+      <Segment
+        options={[
+          { key: "login" as const, label: "Sign in" },
+          { key: "signup" as const, label: "Create account" },
+        ]}
+        value={mode}
+        onChange={(m) => {
+          setMode(m);
+          setError(null);
+        }}
+      />
+
+      <form className="countdown auth-card" onSubmit={submit}>
+        {signup && invited && (
+          <div className="invited-note">
+            <Users size={18} strokeWidth={1.8} aria-hidden="true" />
+            <span>You&apos;re joining your partner&apos;s elf. Just add your own details.</span>
+          </div>
+        )}
+        {signup && (
           <>
-            <input className="input" placeholder="Your name (other parents see this)" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required autoComplete="name" />
-            {!familyCode && <input className="input" placeholder="Your elf's name" value={elfName} onChange={(e) => setElfName(e.target.value)} />}
-            <input className="input" placeholder="Joining your partner's elf? Family code" value={familyCode} onChange={(e) => setFamilyCode(e.target.value.toUpperCase())} />
+            <label className="field">
+              <span className="eyebrow">Your name</span>
+              <input className="input" placeholder="Other parents see this" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required autoComplete="name" />
+            </label>
+            {!familyCode && (
+              <label className="field">
+                <span className="eyebrow">Your elf&apos;s name</span>
+                <input className="input" placeholder="e.g. Pip" value={elfName} onChange={(e) => setElfName(e.target.value)} />
+              </label>
+            )}
           </>
         )}
-        <input className="input" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
-        <input
-          className="input"
-          type="password"
-          placeholder={mode === "signup" ? "Password (8+ characters)" : "Password"}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoComplete={mode === "signup" ? "new-password" : "current-password"}
-        />
+        <label className="field">
+          <span className="eyebrow">Email</span>
+          <input className="input" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+        </label>
+        <label className="field">
+          <span className="eyebrow">Password</span>
+          <span className="password-wrap">
+            <input
+              className="input"
+              type={showPassword ? "text" : "password"}
+              placeholder={signup ? "8 or more characters" : "Your password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete={signup ? "new-password" : "current-password"}
+            />
+            <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"}>
+              {showPassword ? <EyeOff size={18} strokeWidth={1.8} /> : <Eye size={18} strokeWidth={1.8} />}
+            </button>
+          </span>
+        </label>
+        {signup && !invited && (
+          <details className="at-home family-code" open={Boolean(familyCode)}>
+            <summary>Joining your partner&apos;s elf?</summary>
+            <label className="field">
+              <span className="muted small">Type their family code (it&apos;s in their Settings), or ask them to send you an invite link.</span>
+              <input className="input" placeholder="FAM-XXXX-XXXX" value={familyCode} onChange={(e) => setFamilyCode(e.target.value.toUpperCase())} aria-label="Family code" />
+            </label>
+          </details>
+        )}
         {error && <p className="error">{error}</p>}
         <button className="btn primary large full" disabled={busy}>
-          {busy ? "…" : mode === "login" ? "Sign in" : "Create account"}
-        </button>
-        <button type="button" className="link-btn" onClick={() => setMode(mode === "login" ? "signup" : "login")}>
-          {mode === "login" ? "New here? Create an account" : "Already have an account? Sign in"}
+          {busy ? "One moment…" : signup ? "Create account" : "Sign in"}
         </button>
       </form>
+
+      <p className="muted small center">Your house photos stay private to your family. A PIN keeps the kids out.</p>
     </div>
   );
 }
