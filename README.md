@@ -1,4 +1,4 @@
-# Trick or Tinsel (eOTS)
+# Mischief Nights (eOTS)
 
 A PIN-locked Elf on the Shelf planner that gives you one set-up per night for **your** house, built from photos of your rooms, with one to three elves, a kit bag, an AI-assistant hand-off, and a community of other parents. "eOTS" is the kid-proof name on the home screen.
 
@@ -30,7 +30,7 @@ The whole app is behind a PIN on top of your account: it locks when it goes to t
 
 ## Design
 
-The app follows the Trick or Tinsel design pack in `design/handoff/` (tokens, design system, reference screens, product spec). Light theme by default, dark and match-phone in Settings. Gloock for display type, DM Sans for body, Lucide line icons, no emoji.
+The app follows the design pack (made under the working name Trick or Tinsel) in `design/handoff/` (tokens, design system, reference screens, product spec). Light theme by default, dark and match-phone in Settings. Gloock for display type, DM Sans for body, Lucide line icons, no emoji.
 
 ## Deploy on Vercel
 

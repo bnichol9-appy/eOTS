@@ -12,7 +12,7 @@ import { ICON } from "./ui";
 type Gate = "loading" | "signed-out" | "create-pin" | "locked" | "open";
 
 const TABS = [
-  { href: "/", icon: Moon, label: "Tonight" },
+  { href: "/", icon: Moon, label: "Home" },
   { href: "/calendar", icon: Calendar, label: "Calendar" },
   { href: "/rooms", icon: Home, label: "Rooms" },
   { href: "/ideas", icon: Star, label: "Ideas" },

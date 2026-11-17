@@ -1,8 +1,9 @@
+import { APP_NAME } from "@/lib/brand";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Trick or Tinsel",
+  title: APP_NAME,
   description: "One elf set-up per night, built from photos of your own house.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "eOTS", statusBarStyle: "default" },

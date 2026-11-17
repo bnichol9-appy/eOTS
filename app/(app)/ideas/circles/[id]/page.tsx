@@ -1,4 +1,5 @@
 "use client";
+import { APP_NAME } from "@/lib/brand";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -33,7 +34,7 @@ export default function CirclePage() {
   }
 
   async function share() {
-    const text = `Join my Trick or Tinsel circle "${circle!.name}" with code ${circle!.inviteCode}`;
+    const text = `Join my ${APP_NAME} circle "${circle!.name}" with code ${circle!.inviteCode}`;
     try {
       if (navigator.share) await navigator.share({ text });
       else {

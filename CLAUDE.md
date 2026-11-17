@@ -1,6 +1,6 @@
-# Trick or Tinsel (repo: eOTS)
+# Mischief Nights (repo: eOTS)
 
-A phone web app (installable PWA) that gives parents Elf-on-the-Shelf set-ups each night, built from photos of their own house, with a parent community. "eOTS" is the kid-proof home-screen name; the product is Trick or Tinsel.
+A phone web app (installable PWA) that gives parents Elf-on-the-Shelf set-ups each night, built from photos of their own house, with a parent community. "eOTS" is the kid-proof home-screen name; the product is Mischief Nights (formerly Trick or Tinsel; the name lives in `lib/brand.ts`).
 
 ## Stack (do not swap)
 
@@ -12,11 +12,11 @@ A phone web app (installable PWA) that gives parents Elf-on-the-Shelf set-ups ea
 
 ## Design
 
-`design/handoff/` is the Trick or Tinsel design pack: `tokens.json` / `tokens.css`, `DESIGN_SYSTEM.md`, nine reference screens as HTML and screenshots in light and dark, and the product spec and AI prompt docs. Its build brief assumed Expo and Supabase; that assumption was replaced by the stack above. Follow the design system's fidelity rules: colours only from tokens, the orange accent is a background colour only (text on it is `--on-accent`), Lucide line icons at 1.8px stroke, no emoji in the interface, 44px touch targets, both themes pass WCAG AA.
+`design/handoff/` is the design pack (made under the old name Trick or Tinsel): `tokens.json` / `tokens.css`, `DESIGN_SYSTEM.md`, nine reference screens as HTML and screenshots in light and dark, and the product spec and AI prompt docs. Its build brief assumed Expo and Supabase; that assumption was replaced by the stack above. Follow the design system's fidelity rules: colours only from tokens, the orange accent is a background colour only (text on it is `--on-accent`), Lucide line icons at 1.8px stroke, no emoji in the interface, 44px touch targets, both themes pass WCAG AA.
 
 ## Where things are
 
-- `app/(app)/` screens: Tonight (`page.tsx`), `calendar`, `rooms` (+ `new`, `[id]`), `ideas` (library and "Other elves" community, posts, circles, challenges, elf pages), `kit`, `settings` (+ `badges`), `inbox`, `onboarding`.
+- `app/(app)/` screens: Home (`page.tsx`: pre-season countdown and get-ready list, tonight's planner in `components/home/NightPlanner.tsx`, coming-up nights, highlights and community in `components/home/Sections.tsx`; season maths in `lib/client/season.ts`), `calendar`, `rooms` (+ `new`, `[id]`), `ideas` (library and "Other elves" community, posts, circles, challenges, elf pages), `kit`, `settings` (+ `badges`), `inbox`, `onboarding`.
 - `app/api/` route handlers; `lib/api.ts` wraps them. Sessions and the PIN unlock cookie are in `lib/auth.ts`.
 - `lib/days.ts` generation, remix, plan-the-week, community pick. `lib/kit.ts` kit bag. `lib/assistant.ts` WhatsApp/iMessage hand-off templates. `lib/circles.ts`, `lib/challenges.ts`, `lib/badges.ts`, `lib/notify.ts`.
 

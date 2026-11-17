@@ -1,4 +1,5 @@
 "use client";
+import { APP_NAME } from "@/lib/brand";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/lib/client/api";
@@ -32,7 +33,7 @@ export default function LoginPage() {
 
   return (
     <div className="screen full lock">
-      <div className="brand">Trick or Tinsel</div>
+      <div className="brand">{APP_NAME}</div>
       <h1>{mode === "login" ? "Welcome back" : "Start the night shift"}</h1>
       <p className="muted">One elf set-up per night, built from photos of your own house.</p>
       <form className="auth-form" onSubmit={submit}>

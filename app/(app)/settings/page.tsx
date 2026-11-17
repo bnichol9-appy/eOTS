@@ -1,4 +1,5 @@
 "use client";
+import { APP_NAME } from "@/lib/brand";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MessageSquare } from "lucide-react";
@@ -198,7 +199,7 @@ export default function SettingsPage() {
         <Row label="Sign out" value={data.user.email} onClick={() => void api.logout().then(() => router.replace("/login"))} />
         <Row label={<span className="acc">Delete account</span>} onClick={() => { setDeletePassword(""); setDeleteError(null); setSheet("delete"); }} />
       </div>
-      <p className="muted small center">Trick or Tinsel · model {data.model}</p>
+      <p className="muted small center">{APP_NAME} · model {data.model}</p>
 
       {sheet === "elves" && (
         <Sheet eyebrow="Your elves" title="Who's on the night shift?" onClose={() => setSheet("none")}>

@@ -1,4 +1,5 @@
 "use client";
+import { APP_NAME } from "@/lib/brand";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
@@ -104,7 +105,7 @@ export default function OnboardingPage() {
 
       {step === 1 && (
         <>
-          <div className="brand">Trick or Tinsel</div>
+          <div className="brand">{APP_NAME}</div>
           <h1>
             The elves work
             <br />
@@ -198,7 +199,7 @@ export default function OnboardingPage() {
             <br />
             assistant?
           </h1>
-          <p className="body">Trick or Tinsel can hand it jobs: buy the kit, remind you at set-up time. It opens WhatsApp or Messages with the text ready and you tap send. Skip this if you don&apos;t have one.</p>
+          <p className="body">{APP_NAME} can hand it jobs: buy the kit, remind you at set-up time. It opens WhatsApp or Messages with the text ready and you tap send. Skip this if you don&apos;t have one.</p>
           <Segment
             options={[
               { key: "whatsapp" as const, label: "WhatsApp" },

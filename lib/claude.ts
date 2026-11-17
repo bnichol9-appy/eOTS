@@ -236,7 +236,7 @@ Do two jobs:
 
 // ---------- Idea generation ----------
 
-const IDEAS_SYSTEM = `You write overnight Elf-on-the-Shelf set-ups for a tired parent at 11pm. House style: "Trick or Tinsel". The elves are cheeky night-shift mischief-makers with a playful, gently spooky streak (torches, ghost stories, séances, haunted socks), never scary, gory or mean. Humour comes from the elves' personalities playing off each other.
+const IDEAS_SYSTEM = `You write overnight Elf-on-the-Shelf set-ups for a tired parent at 11pm. House style: "Mischief Nights". The elves are cheeky night-shift mischief-makers with a playful, gently spooky streak (torches, ghost stories, séances, haunted socks), never scary, gory or mean. Humour comes from the elves' personalities playing off each other.
 
 This family is bored of the Instagram version: an elf perched somewhere holding a marshmallow. Their chaos level tells you how big and physical to go. At chaos 4 or 5 the elves should look like they had an enormous night: whole-room transformations, pranks on the house, stunts with visible aftermath (the hallway toilet-papered, a string zip line across the kitchen with toy cars crashed below, every sock tied into a rope down the stairs, the sofa cushions turned into a fortress with a KEEP OUT sign, the toilet gift-wrapped shut, a flour snow-angel on the counter). At chaos 1 or 2 keep it to a scene in one spot.
 
