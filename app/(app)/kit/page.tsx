@@ -189,7 +189,7 @@ export default function KitPage() {
       {send && bag && (
         <AssistantSheet
           title={`Buy ${toBuy.length} thing${toBuy.length === 1 ? "" : "s"} by ${weekday(buyBy)} ${dayNum(buyBy)}`}
-          message={buyMessage(buyItems, buyBy, bag.budgetGBP)}
+          message={buyMessage(toBuy, buyBy, bag.budgetGBP)}
           settings={data.user.settings.assistant}
           onChannel={(channel) => void api.saveSettings({ assistant: { channel } }).then(actions.setSettings)}
           onClose={() => setSend(false)}

@@ -19,6 +19,13 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [invited, setInvited] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  // Worked out in the browser only, so the server and the phone never disagree about the date.
+  const [sleeps, setSleeps] = useState(0);
+  useEffect(() => {
+    const today = new Date();
+    const year = today.getMonth() === 11 && today.getDate() > 24 ? today.getFullYear() + 1 : today.getFullYear();
+    setSleeps(Math.ceil((new Date(year, 11, 1).getTime() - today.getTime()) / 86_400_000));
+  }, []);
 
   // Arriving from an invite link: /login?mode=signup&code=FAM-XXXX-XXXX
   useEffect(() => {
@@ -46,9 +53,6 @@ export default function LoginPage() {
     }
   }
 
-  const today = new Date();
-  const year = today.getMonth() === 11 && today.getDate() > 24 ? today.getFullYear() + 1 : today.getFullYear();
-  const sleeps = Math.ceil((new Date(year, 11, 1).getTime() - today.getTime()) / 86_400_000);
   const signup = mode === "signup";
 
   return (
