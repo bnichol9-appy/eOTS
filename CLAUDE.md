@@ -1,6 +1,6 @@
-# Mischief Nights (repo: eOTS)
+# Shelf Life (repo: eOTS)
 
-A phone web app (installable PWA) that gives parents Elf-on-the-Shelf set-ups each night, built from photos of their own house, with a parent community. "eOTS" is the kid-proof home-screen name; the product is Mischief Nights (formerly Trick or Tinsel; the name lives in `lib/brand.ts`).
+A phone web app (installable PWA) that gives parents Elf-on-the-Shelf set-ups each night, built from photos of their own house, with a parent community. "eOTS" is the kid-proof home-screen name; the product is Shelf Life (formerly Mischief Nights and Trick or Tinsel; the name lives in `lib/brand.ts`).
 
 ## Stack (do not swap)
 

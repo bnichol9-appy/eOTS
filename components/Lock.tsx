@@ -1,5 +1,4 @@
 "use client";
-import { APP_NAME } from "@/lib/brand";
 import { Check, Delete } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/client/api";
@@ -58,9 +57,8 @@ export function Lock({ mode, onUnlocked, waitSeconds = 0 }: { mode: "unlock" | "
 
   return (
     <div className="screen full lock">
-      <div className="brand">{APP_NAME}</div>
       <h1>{title}</h1>
-      <p className="muted">{mode === "create" && confirm === null ? "4 to 8 digits. This is what stops the kids getting in." : "The elves are waiting."}</p>
+      {mode === "create" && confirm === null && <p className="muted">4 to 8 digits. This is what stops the kids getting in.</p>}
       <div className="pin-dots" aria-label={`${pin.length} digits entered`}>
         {Array.from({ length: Math.max(4, pin.length) }, (_, i) => (
           <i key={i} className={i < pin.length ? "on" : ""} />

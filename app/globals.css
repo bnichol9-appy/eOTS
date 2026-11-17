@@ -1,4 +1,4 @@
-/* Mischief Nights design tokens. Light is the default; dark via data-theme="dark" or "system" + OS preference. */
+/* Shelf Life design tokens. Light is the default; dark via data-theme="dark" or "system" + OS preference. */
 :root,
 :root[data-theme="light"] {
   color-scheme: light;

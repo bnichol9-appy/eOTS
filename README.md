@@ -1,4 +1,4 @@
-# Mischief Nights (eOTS)
+# Shelf Life (eOTS)
 
 A PIN-locked Elf on the Shelf planner that gives you one set-up per night for **your** house, built from photos of your rooms, with one to three elves, a kit bag, an AI-assistant hand-off, and a community of other parents. "eOTS" is the kid-proof name on the home screen.
 
