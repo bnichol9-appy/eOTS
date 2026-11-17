@@ -11,7 +11,7 @@ import { formatWord, type Day, type Elf, type PostSummary } from "@/lib/types";
 
 const SM = { size: 16, strokeWidth: 1.8 };
 
-function SectionHead({ title, action }: { title: string; action?: React.ReactNode }) {
+export function SectionHead({ title, action }: { title: string; action?: React.ReactNode }) {
   return (
     <div className="section-head">
       <h2 className="section-title">{title}</h2>

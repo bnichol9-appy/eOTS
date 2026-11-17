@@ -2031,3 +2031,145 @@ select.input {
 .cell:disabled {
   cursor: default;
 }
+
+/* Ideas */
+.search-clear {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.search .search-clear svg {
+  position: static;
+  transform: none;
+}
+.idea-tile {
+  position: relative;
+}
+.idea-tile-open {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.tile-save {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 22px;
+  background: var(--overlay);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tile-save.on {
+  color: var(--acc-text);
+}
+.corner-tag {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+}
+.idea-list {
+  display: flex;
+  flex-direction: column;
+}
+.idea-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 68px;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: none;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  width: 100%;
+  cursor: pointer;
+}
+.idea-row .grow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.idea-thumb {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--ph);
+}
+.idea-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.circle-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 calc(-1 * var(--screen-x));
+  padding: 0 var(--screen-x) 2px;
+}
+.circle-strip::-webkit-scrollbar {
+  display: none;
+}
+.circle-card {
+  flex: none;
+  width: 156px;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px;
+  border-radius: var(--r-card);
+  background: var(--surface);
+  border: 1px solid var(--surface);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+}
+.circle-card strong {
+  margin-top: 6px;
+  font-size: 15px;
+  line-height: 1.25;
+}
+.circle-card.add {
+  background: transparent;
+  border: 1px dashed var(--dash);
+  cursor: pointer;
+}
+.challenge-icon.line {
+  background: transparent;
+  border: 1px solid var(--dash);
+  color: var(--text);
+}
+.challenge .muted.small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
