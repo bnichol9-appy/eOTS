@@ -1,7 +1,7 @@
 "use client";
 import { APP_NAME } from "@/lib/brand";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/client/api";
 import { errorMessage, timezone } from "@/lib/client/utils";
 
@@ -15,6 +15,18 @@ export default function LoginPage() {
   const [familyCode, setFamilyCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [invited, setInvited] = useState(false);
+
+  // Arriving from an invite link: /login?mode=signup&code=FAM-XXXX-XXXX
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search);
+    if (sp.get("mode") === "signup") setMode("signup");
+    const code = (sp.get("code") ?? "").toUpperCase();
+    if (code.startsWith("FAM-")) {
+      setFamilyCode(code);
+      setInvited(true);
+    }
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,7 +46,7 @@ export default function LoginPage() {
   return (
     <div className="screen full lock">
       <div className="brand">{APP_NAME}</div>
-      <h1>{mode === "login" ? "Welcome back" : "Start the night shift"}</h1>
+      <h1>{mode === "login" ? "Welcome back" : invited ? "Join the night shift" : "Start the night shift"}</h1>
       <p className="muted">One elf set-up per night, built from photos of your own house.</p>
       <form className="auth-form" onSubmit={submit}>
         {mode === "signup" && (

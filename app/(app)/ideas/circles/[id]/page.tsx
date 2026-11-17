@@ -1,11 +1,12 @@
 "use client";
-import { APP_NAME } from "@/lib/brand";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { PostCard } from "@/components/PostCard";
-import { Topbar, Working } from "@/components/ui";
+import { Sheet, Topbar, Working } from "@/components/ui";
+import { InviteShare } from "@/components/InviteShare";
+import { circleInviteText, inviteLink } from "@/lib/invite";
 import { api } from "@/lib/client/api";
 import { errorMessage, prettyDate } from "@/lib/client/utils";
 import type { Circle, PostSummary } from "@/lib/types";
@@ -17,7 +18,7 @@ export default function CirclePage() {
   const [circle, setCircle] = useState<Circle | null>(null);
   const [posts, setPosts] = useState<PostSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [inviting, setInviting] = useState(false);
 
   useEffect(() => {
     api
@@ -33,20 +34,6 @@ export default function CirclePage() {
     setPosts((ps) => ps.map((p) => (p.id === pid ? fn(p) : p)));
   }
 
-  async function share() {
-    const text = `Join my ${APP_NAME} circle "${circle!.name}" with code ${circle!.inviteCode}`;
-    try {
-      if (navigator.share) await navigator.share({ text });
-      else {
-        await navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
-    } catch {
-      /* cancelled */
-    }
-  }
-
   if (error) return <div className="screen"><p className="error">{error}</p></div>;
   if (!circle) return <div className="screen"><Working label="Loading…" /></div>;
 
@@ -58,8 +45,8 @@ export default function CirclePage() {
           Invite code: <strong className="code">{circle.inviteCode}</strong>
         </p>
         <div className="row">
-          <button className="btn primary small grow" onClick={() => void share()}>
-            {copied ? "Copied" : "Invite parents"}
+          <button className="btn primary small grow" onClick={() => setInviting(true)}>
+            Invite parents
           </button>
           <button
             className="btn small grow"
@@ -96,6 +83,12 @@ export default function CirclePage() {
       {posts.map((p) => (
         <PostCard key={p.id} post={p} onVote={(x) => void api.vote(x.id).then((v) => patch(x.id, (q) => ({ ...q, upvotes: v.upvotes, viewer: { ...q.viewer, voted: v.voted } })))} onSave={(x) => void api.savePost(x.id).then((v) => patch(x.id, (q) => ({ ...q, viewer: { ...q.viewer, saved: v.saved } })))} />
       ))}
+      {inviting && (
+        <Sheet eyebrow="Invite" title={`Invite to ${circle.name}`} onClose={() => setInviting(false)}>
+          <p className="body">Anyone with the link can join this circle and see the nights shared to it.</p>
+          <InviteShare link={inviteLink(circle.inviteCode)} text={circleInviteText(circle.name, inviteLink(circle.inviteCode))} />
+        </Sheet>
+      )}
     </div>
   );
 }

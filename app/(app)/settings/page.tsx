@@ -3,7 +3,9 @@ import { APP_NAME } from "@/lib/brand";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MessageSquare } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { InviteShare } from "@/components/InviteShare";
+import { familyInviteText, inviteLink } from "@/lib/invite";
 import { useApp } from "@/components/AppContext";
 import { ElfEditor } from "@/components/ElfEditor";
 import { Checkbox, ICON, Segment, Sheet, Topbar } from "@/components/ui";
@@ -26,6 +28,10 @@ export default function SettingsPage() {
   const [handle, setHandle] = useState(data.family.handle);
   const [error, setError] = useState<string | null>(null);
   const [sheet, setSheet] = useState<"none" | "elves" | "house" | "pin" | "family" | "delete">("none");
+  useEffect(() => {
+    const s = new URLSearchParams(window.location.search).get("sheet");
+    if (s === "family" || s === "elves") setSheet(s);
+  }, []);
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -173,7 +179,7 @@ export default function SettingsPage() {
       <div className="eyebrow">Co-parents and community</div>
       <div className="list">
         <Row label="Everyone on this elf" value={data.family.members.map((m) => m.displayName).join(", ")} />
-        <Row label="Family code" value={<span className="code">{data.family.inviteCode}</span>} onClick={() => setSheet("family")} />
+        <Row label="Invite your co-parent" value={data.family.members.length > 1 ? `${data.family.members.length} parents` : "Send a link"} onClick={() => setSheet("family")} />
         <Row label="Your name" value={displayName} onClick={() => setSheet("family")} />
         <Row label="Elf page handle" value={`@${handle}`} onClick={() => setSheet("family")} />
         <Link href="/settings/badges" className="list-row">
@@ -240,8 +246,9 @@ export default function SettingsPage() {
 
       {sheet === "family" && (
         <Sheet eyebrow="Co-parents" title="Your family" onClose={() => setSheet("none")}>
-          <p className="body">Your partner signs up with this code and gets the same house, plan, log and elves. Whoever is up at 11pm sees the same thing.</p>
-          <p className="body">Family code: <strong className="code">{data.family.inviteCode}</strong></p>
+          <p className="body">Send your partner this link. They get the same house, plan, log and elves, so whoever is up at 11pm sees the same thing.</p>
+          <InviteShare link={inviteLink(data.family.inviteCode)} text={familyInviteText(p.elves.map((e) => e.name).filter(Boolean), inviteLink(data.family.inviteCode))} />
+          <p className="muted small">Or they can type the family code when they sign up: <strong className="code">{data.family.inviteCode}</strong></p>
           <div className="field"><span className="eyebrow">Your name</span><input className="input" value={displayName} onChange={(e) => setDisplayName(e.target.value)} /></div>
           <div className="field"><span className="eyebrow">Elf page handle</span><input className="input" value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase())} /></div>
           <button className="btn primary full" onClick={() => void saveProfile()}>Save</button>

@@ -7,6 +7,7 @@ import { api, onUnauthorized, type Bootstrap } from "@/lib/client/api";
 import { applyTheme, localDate, lockAfterSeconds, registerServiceWorker } from "@/lib/client/utils";
 import { AppContext, type AppActions } from "./AppContext";
 import { Lock } from "./Lock";
+import { takePendingInvite } from "@/lib/invite";
 import { ICON } from "./ui";
 
 type Gate = "loading" | "signed-out" | "create-pin" | "locked" | "open";
@@ -101,9 +102,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     void load();
   }, [load]);
 
-  // First run: send new families through onboarding.
+  // First run: send new families through onboarding. Then pick up an invite link opened before signing in.
   useEffect(() => {
     if (data && !data.profile.onboarded && pathname !== "/onboarding") router.replace("/onboarding");
+    else if (data?.profile.onboarded) {
+      const code = takePendingInvite();
+      if (code) router.push(`/join/${encodeURIComponent(code)}`);
+    }
   }, [data, pathname, router]);
 
   if (gate === "loading" || gate === "signed-out") {

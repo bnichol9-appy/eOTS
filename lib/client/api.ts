@@ -82,6 +82,7 @@ export interface ElfProfile {
 
 export const api = {
   authStatus: () => call<AuthStatus>("GET", "/auth/status"),
+  invite: (code: string) => call<import("../invite").InviteInfo>("GET", `/invite/${encodeURIComponent(code)}`),
   signup: (b: { email: string; password: string; displayName: string; elfName: string; familyCode: string; timezone: string }) => call<{ ok: true }>("POST", "/auth/signup", b),
   login: (email: string, password: string) => call<{ ok: true }>("POST", "/auth/login", { email, password }),
   logout: () => call<{ ok: true }>("POST", "/auth/logout"),

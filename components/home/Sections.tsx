@@ -138,9 +138,9 @@ export function buildUpSteps({ season, onPlanArrival }: { season: Season; onPlan
     {
       key: "partner",
       label: "Bring in your co-parent",
-      detail: "Share the house, the plan and the 11pm shift",
+      detail: "Send them an invite link on WhatsApp",
       done: data.family.members.length > 1,
-      href: "/settings",
+      href: "/settings?sheet=family",
       optional: true,
     },
     {
