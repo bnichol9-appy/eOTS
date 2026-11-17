@@ -31,6 +31,7 @@ export default function CirclePage() {
       .then((r) => {
         setCircle(r.circle);
         setPosts(r.posts);
+        if (new URLSearchParams(window.location.search).get("invite") === "1") setInviting(true);
       })
       .catch((e) => setError(errorMessage(e)));
   }, [id]);

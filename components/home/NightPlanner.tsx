@@ -1,12 +1,12 @@
 "use client";
 import Link from "next/link";
-import { MessageSquare, Share2 } from "lucide-react";
+import { CalendarClock, MessageSquare, Moon, Share2, ShieldCheck, Shuffle, Sparkles, Trophy, Users } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { AssistantSheet } from "@/components/AssistantSheet";
 import { IdeaSheet } from "@/components/IdeaSheet";
 import { PhotoPicker } from "@/components/PhotoPicker";
-import { Actions, Checkbox, Chips, ElfAvatar, ElfStack, ICON_SM, Pin, Segment, Sheet, Tiles, Working, rolesToElves } from "@/components/ui";
+import { Actions, Chips, SheetSection, ElfAvatar, ElfStack, ICON_SM, Pin, Segment, Sheet, Tiles, Working, rolesToElves } from "@/components/ui";
 import { datedRemindMessage, friendlyTime } from "@/lib/assistant";
 import { api, type DayResponse } from "@/lib/client/api";
 import { errorMessage, localDate, REACTIONS, shiftDate } from "@/lib/client/utils";
@@ -362,8 +362,8 @@ export function NightPlanner({
           actions={
             day.status === "open" && (
               <>
-                <button className="btn" onClick={() => setSheet("tweak")}>
-                  Remix this one
+                <button className="btn secondary" onClick={() => setSheet("tweak")}>
+                  <Shuffle {...ICON_SM} /> Remix
                 </button>
                 <button className="btn primary" onClick={() => void markSetUp().then(() => setSheet("none"))}>
                   Mark as set up
@@ -374,48 +374,98 @@ export function NightPlanner({
         />
       )}
       {sheet === "idea" && hero?.kind === "pick" && (
-        <Sheet eyebrow={`From ${hero.post.author.elfName}'s house`} title={hero.post.title} onClose={() => setSheet("none")}>
-          <p className="body">{hero.reason}</p>
-          <Link href={`/ideas/${hero.post.id}`} className="btn full">
-            See the full post
-          </Link>
-          <button className="btn primary full" onClick={() => void markSetUp().then(() => setSheet("none"))}>
-            Do this tonight
-          </button>
+        <Sheet
+          eyebrow={`From ${hero.post.author.elfName}'s house`}
+          title={hero.post.title}
+          onClose={() => setSheet("none")}
+          footer={
+            <div className="sheet-actions">
+              <Link href={`/ideas/${hero.post.id}`} className="btn secondary">
+                Full post
+              </Link>
+              <button className="btn primary" onClick={() => void markSetUp().then(() => setSheet("none"))}>
+                Do this tonight
+              </button>
+            </div>
+          }
+        >
+          <div className="photo">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={hero.post.photoUrl} alt="" />
+          </div>
+          <p className="body idea-pitch">{hero.post.pitch}</p>
+          <div className="kids-see">
+            <Users size={18} strokeWidth={1.8} aria-hidden="true" />
+            <div>
+              <div className="eyebrow">Why it&apos;s here</div>
+              <p className="body">{hero.reason}</p>
+            </div>
+          </div>
+          <Tiles
+            items={[
+              { label: "Upvotes", value: String(hero.post.upvotes) },
+              { label: "Did it", value: String(hero.post.uses) },
+              { label: "Set-up", value: `${hero.post.setupMinutes} min` },
+            ]}
+          />
         </Sheet>
       )}
 
       {sheet === "tweak" && (
-        <Sheet eyebrow={heroIdea ? "Remix or fresh batch" : "Tonight"} title="What's the mood?" onClose={() => setSheet("none")}>
-          <Chips options={DIRECTIONS} value={direction} onChange={setDirection} multi />
-          <input className="input" placeholder="Anything else? e.g. school day, grandma is staying" value={custom} onChange={(e) => setCustom(e.target.value)} />
+        <Sheet
+          eyebrow={heroIdea ? "Remix or fresh batch" : date === today ? "Tonight" : "This night"}
+          title="What's the mood?"
+          onClose={() => setSheet("none")}
+          footer={
+            <div className="sheet-actions">
+              {heroIdea && (
+                <button className="btn secondary" onClick={() => void run("remix", () => api.remix(date, heroIdea.id, fullDirection)).then(() => setSheet("none"))}>
+                  Remix this one
+                </button>
+              )}
+              <button className="btn primary" onClick={() => void generate()}>
+                <Sparkles {...ICON_SM} /> {heroIdea ? "Three new ideas" : "Plan it"}
+              </button>
+            </div>
+          }
+        >
+          <SheetSection title="Pick a vibe" hint={direction.length ? `${direction.length} picked` : "Any number"}>
+            <Chips options={DIRECTIONS} value={direction} onChange={setDirection} multi />
+          </SheetSection>
+          <SheetSection title="Anything else?">
+            <input className="input" placeholder="e.g. school day, grandma is staying" value={custom} onChange={(e) => setCustom(e.target.value)} aria-label="Anything else" />
+          </SheetSection>
           {data.rooms.length > 0 && (
-            <select className="input" value={focusRoomId} onChange={(e) => setFocusRoomId(e.target.value)} aria-label="Focus room">
-              <option value="">Any room</option>
-              {data.rooms.map((r) => (
-                <option key={r.id} value={r.id}>
-                  Focus on {r.name}
-                </option>
-              ))}
-            </select>
+            <SheetSection title="Which room?">
+              <Chips
+                options={["Any room", ...data.rooms.map((r) => r.name)]}
+                value={[data.rooms.find((r) => r.id === focusRoomId)?.name ?? "Any room"]}
+                onChange={(v) => setFocusRoomId(data.rooms.find((r) => r.name === v[0])?.id ?? "")}
+                scroll
+              />
+            </SheetSection>
           )}
-          <label className="check-line">
-            <Checkbox on={day.isBusy} onChange={(v) => void run("busy", () => api.setBusy(date, v))} label="Busy night" />
-            Busy night: 5 minutes, no mess, nothing to buy
-          </label>
-          {heroIdea && (
-            <button className="btn full" onClick={() => void run("remix", () => api.remix(date, heroIdea.id, fullDirection)).then(() => setSheet("none"))}>
-              Remix just this idea
+          <div className="list">
+            <button className="list-row set-row" role="switch" aria-checked={day.isBusy} onClick={() => void run("busy", () => api.setBusy(date, !day.isBusy))}>
+              <CalendarClock size={18} strokeWidth={1.8} className="row-icon" aria-hidden="true" />
+              <span className="row-label">
+                Busy night
+                <span className="row-sub">Five minutes, no mess, nothing to buy</span>
+              </span>
+              <span className={`switch ${day.isBusy ? "on" : ""}`} aria-hidden="true">
+                <i />
+              </span>
             </button>
-          )}
-          <button className="btn primary full large" onClick={() => void generate()}>
-            {heroIdea ? "Three new ideas" : "Plan tonight"}
-          </button>
-          {day.ideas.length === 0 && (
-            <button className="link-btn" onClick={() => void run("skip", () => api.skip(date)).then(() => setSheet("none"))}>
-              The elves are having the night off
-            </button>
-          )}
+            {day.ideas.length === 0 && (
+              <button className="list-row set-row" onClick={() => void run("skip", () => api.skip(date)).then(() => setSheet("none"))}>
+                <Moon size={18} strokeWidth={1.8} className="row-icon" aria-hidden="true" />
+                <span className="row-label">
+                  Night off
+                  <span className="row-sub">The elves stay put this time</span>
+                </span>
+              </button>
+            )}
+          </div>
         </Sheet>
       )}
 
@@ -466,27 +516,39 @@ function CompleteSheet({ busy, onClose, onSubmit }: { busy: boolean; onClose: ()
   const [tags, setTags] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   return (
-    <Sheet eyebrow="Morning after" title="How did it go?" onClose={onClose}>
+    <Sheet
+      eyebrow="The morning after"
+      title="How did it go?"
+      onClose={onClose}
+      footer={
+        !busy && (
+          <button className="btn primary large full" onClick={() => onSubmit({ photo: photos[0] ?? null, reaction, feedbackTags: tags, notes })}>
+            Save and learn
+          </button>
+        )
+      }
+    >
       {busy ? (
         <Working label="The elves are taking notes…" />
       ) : (
         <>
-          <div className="eyebrow">Photo of what you built (the elves learn from this)</div>
-          <PhotoPicker photos={photos} onChange={setPhotos} multiple={false} label="Choose" />
-          <div className="eyebrow">The kids</div>
-          <div className="reactions" role="radiogroup" aria-label="Kids' reaction">
-            {REACTIONS.map((r, i) => (
-              <button key={r} role="radio" aria-checked={reaction === i + 1} className={reaction === i + 1 ? "on" : ""} onClick={() => setReaction(i + 1)}>
-                {r}
-              </button>
-            ))}
-          </div>
-          <div className="eyebrow">Tell the elves</div>
-          <Chips options={FEEDBACK} value={tags} onChange={setTags} multi />
-          <textarea className="input" rows={3} placeholder="What actually happened? What would you change?" value={notes} onChange={(e) => setNotes(e.target.value)} />
-          <button className="btn primary large full" onClick={() => onSubmit({ photo: photos[0] ?? null, reaction, feedbackTags: tags, notes })}>
-            Save and learn
-          </button>
+          <SheetSection title="The kids" hint={REACTIONS[reaction - 1]}>
+            <div className="reaction-scale" role="radiogroup" aria-label="Kids' reaction">
+              {REACTIONS.map((r, i) => (
+                <button key={r} role="radio" aria-checked={reaction === i + 1} className={reaction === i + 1 ? "on" : ""} onClick={() => setReaction(i + 1)}>
+                  <span className="reaction-num">{i + 1}</span>
+                  <span className="reaction-word">{r}</span>
+                </button>
+              ))}
+            </div>
+          </SheetSection>
+          <SheetSection title="A photo" hint="Optional, but the elves learn most from it">
+            <PhotoPicker photos={photos} onChange={setPhotos} multiple={false} label="Choose" />
+          </SheetSection>
+          <SheetSection title="Tell the elves">
+            <Chips options={FEEDBACK} value={tags} onChange={setTags} multi />
+            <textarea className="input" rows={3} placeholder="What actually happened? What would you change?" value={notes} onChange={(e) => setNotes(e.target.value)} aria-label="Notes" />
+          </SheetSection>
         </>
       )}
     </Sheet>
@@ -510,38 +572,63 @@ function ShareSheet({
   const [visibility, setVisibility] = useState<"public" | "circles">("public");
   const [enterChallenge, setEnterChallenge] = useState(Boolean(challenge));
   return (
-    <Sheet eyebrow="Other elves" title="Share this night" onClose={onClose}>
+    <Sheet
+      eyebrow="Other elves"
+      title="Share this night"
+      onClose={onClose}
+      footer={
+        !busy && (
+          <div className="sheet-actions">
+            <button className="btn secondary" onClick={onClose}>
+              Not this one
+            </button>
+            <button className="btn primary" onClick={() => onSubmit({ description, visibility, enterChallenge })}>
+              <Share2 {...ICON_SM} /> Share it
+            </button>
+          </div>
+        )
+      }
+    >
       {busy ? (
         <Working label="Packaging it up for other parents…" />
       ) : (
         <>
-          <p className="body">
-            Your photo plus a how-to written from what you actually built. Other families can upvote it, save it and do it in their own house. Your kids&apos; names and your room photos are never
-            shared.
-          </p>
-          <textarea className="input" rows={3} placeholder="Anything to add? What you changed, a tip for other parents" value={description} onChange={(e) => setDescription(e.target.value)} />
-          <Segment
-            options={[
-              { key: "public" as const, label: "Everyone" },
-              { key: "circles" as const, label: "Just my circles", disabled: !hasCircles },
-            ]}
-            value={visibility}
-            onChange={setVisibility}
-          />
+          <div className="kids-see">
+            <ShieldCheck size={18} strokeWidth={1.8} aria-hidden="true" />
+            <p className="body small">Your photo plus a how-to written from what you built. Your kids&apos; names and your room photos are never shared.</p>
+          </div>
+          <SheetSection title="Who sees it">
+            <Segment
+              options={[
+                { key: "public" as const, label: "Everyone" },
+                { key: "circles" as const, label: "Just my circles", disabled: !hasCircles },
+              ]}
+              value={visibility}
+              onChange={setVisibility}
+            />
+          </SheetSection>
+          <SheetSection title="A tip for other parents" hint="Optional">
+            <textarea
+              className="input"
+              rows={3}
+              placeholder="What you changed, what made the kids laugh"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              aria-label="Tip for other parents"
+            />
+          </SheetSection>
           {challenge && (
-            <label className="check-line">
-              <Checkbox on={enterChallenge} onChange={setEnterChallenge} label="Enter the challenge" />
-              <span>
-                Enter this week&apos;s challenge: <strong>{challenge}</strong>
+            <button className="list-row set-row" role="switch" aria-checked={enterChallenge} onClick={() => setEnterChallenge(!enterChallenge)}>
+              <Trophy size={18} strokeWidth={1.8} className="row-icon" aria-hidden="true" />
+              <span className="row-label">
+                Enter this week&apos;s challenge
+                <span className="row-sub">{challenge}</span>
               </span>
-            </label>
+              <span className={`switch ${enterChallenge ? "on" : ""}`} aria-hidden="true">
+                <i />
+              </span>
+            </button>
           )}
-          <button className="btn primary large full" onClick={() => onSubmit({ description, visibility, enterChallenge })}>
-            Share it
-          </button>
-          <button className="link-btn" onClick={onClose}>
-            Not this one
-          </button>
         </>
       )}
     </Sheet>

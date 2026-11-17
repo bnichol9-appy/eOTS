@@ -30,7 +30,7 @@ import { InviteShare } from "@/components/InviteShare";
 import { familyInviteText, inviteLink } from "@/lib/invite";
 import { useApp } from "@/components/AppContext";
 import { ElfEditor } from "@/components/ElfEditor";
-import { Checkbox, ElfAvatar, Segment, Sheet, Topbar } from "@/components/ui";
+import { ElfAvatar, Segment, Sheet, SheetSection, Topbar } from "@/components/ui";
 import { SectionHead } from "@/components/home/Sections";
 import { friendlyTime } from "@/lib/assistant";
 import { api } from "@/lib/client/api";
@@ -38,6 +38,9 @@ import { currentPushEndpoint, errorMessage, LOCK_KEY, lockAfterSeconds, subscrib
 import type { AgeBand, Profile } from "@/lib/types";
 
 const SM = { size: 18, strokeWidth: 1.8 };
+const SPOOK = ["", "Cosy", "A shiver", "Ghost stories", "Haunted", "Properly spooky"];
+const CHAOS = ["", "Gentle", "Playful", "Cheeky", "Chaotic", "Total mayhem"];
+const YEAR = new Date().getFullYear();
 const BANDS: { key: AgeBand; label: string }[] = [
   { key: "under5", label: "Under 5" },
   { key: "5to8", label: "5–8" },
@@ -56,6 +59,8 @@ export default function SettingsPage() {
     const s = new URLSearchParams(window.location.search).get("sheet");
     if (s === "family" || s === "elves") setSheet(s);
   }, []);
+  const [sheetError, setSheetError] = useState<string | null>(null);
+  useEffect(() => setSheetError(null), [sheet]);
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -393,143 +398,196 @@ export default function SettingsPage() {
       </p>
 
       {sheet === "elves" && (
-        <Sheet eyebrow="Your elves" title="Who's on the night shift?" onClose={() => setSheet("none")}>
+        <Sheet
+          eyebrow="Your elves"
+          title="Who's on the night shift?"
+          onClose={() => setSheet("none")}
+          footer={
+            <button className="btn primary large full" onClick={() => void saveProfile()}>
+              Save elves
+            </button>
+          }
+        >
           <ElfEditor elves={p.elves.length ? p.elves : [{ name: "", personality: "", color: "elf1" }]} onChange={(elves) => set("elves", elves)} />
-          <p className="muted small">Each elf keeps its colour everywhere: avatar, pins, calendar dots and kit tags.</p>
-          <button className="btn primary full" onClick={() => void saveProfile()}>
-            Save
-          </button>
+          <p className="muted small">Each elf keeps its colour everywhere: avatar, pins, calendar dots and kit tags. A personality gives the ideas their voice.</p>
         </Sheet>
       )}
 
       {sheet === "house" && (
-        <Sheet eyebrow="House rules" title="How far can the elves go?" onClose={() => setSheet("none")}>
-          <div className="eyebrow">Kids&apos; ages</div>
-          <div className="chips">
-            {BANDS.map((b) => (
-              <button
-                key={b.key}
-                className={`chip ${p.ageBands.includes(b.key) ? "on" : ""}`}
-                aria-pressed={p.ageBands.includes(b.key)}
-                onClick={() => set("ageBands", p.ageBands.includes(b.key) ? p.ageBands.filter((x) => x !== b.key) : [...p.ageBands, b.key])}
-              >
-                {b.label}
-              </button>
-            ))}
-          </div>
-          <div className="eyebrow">Kids&apos; names (never shared)</div>
-          <textarea
-            className="input"
-            rows={2}
-            placeholder={"Ava 7\nMax 4"}
-            defaultValue={p.kids.map((k) => (k.age ? `${k.name} ${k.age}` : k.name)).join("\n")}
-            onChange={(e) =>
-              set(
-                "kids",
-                e.target.value
-                  .split("\n")
-                  .map((l) => l.trim())
-                  .filter(Boolean)
-                  .map((l) => {
-                    const m = l.match(/^(.*?)[\s,]+(\d{1,2})$/);
-                    return m ? { name: m[1].trim(), age: Number(m[2]) } : { name: l, age: null };
-                  }),
-              )
-            }
-          />
-          <div className="between">
-            <span className="eyebrow">Spook level</span>
-            <strong>{p.spookLevel} / 5</strong>
-          </div>
-          <div className="dial">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button key={n} className={n <= p.spookLevel ? "on" : ""} onClick={() => set("spookLevel", n)} aria-label={`Spook ${n}`} />
-            ))}
-          </div>
-          <div className="between">
-            <span className="eyebrow">Chaos level</span>
-            <strong>{p.chaosLevel} / 5</strong>
-          </div>
-          <div className="dial">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button key={n} className={n <= p.chaosLevel ? "on" : ""} onClick={() => set("chaosLevel", n)} aria-label={`Chaos ${n}`} />
-            ))}
-          </div>
-          <div className="eyebrow">Most time you&apos;ll give it at 11pm</div>
-          <div className="option-grid">
-            {[5, 10, 20, 30].map((m) => (
-              <button key={m} className={`option ${p.maxSetupMinutes === m ? "on" : ""}`} onClick={() => set("maxSetupMinutes", m)}>
-                {m} min
-              </button>
-            ))}
-          </div>
-          <div className="eyebrow">Mess tolerance</div>
-          <Segment
-            options={[
-              { key: "low" as const, label: "Low" },
-              { key: "medium" as const, label: "Medium" },
-              { key: "high" as const, label: "High" },
-            ]}
-            value={p.messTolerance}
-            onChange={(v) => set("messTolerance", v)}
-          />
-          <div className="field">
-            <span className="eyebrow">Supplies you usually have</span>
-            <textarea className="input" rows={2} value={p.supplies} onChange={(e) => set("supplies", e.target.value)} />
-          </div>
-          <div className="field">
-            <span className="eyebrow">Off limits and house rules</span>
+        <Sheet
+          eyebrow="House rules"
+          title="How far can the elves go?"
+          onClose={() => setSheet("none")}
+          footer={
+            <button className="btn primary large full" onClick={() => void saveProfile()}>
+              Save house rules
+            </button>
+          }
+        >
+          <SheetSection title="Your kids" hint="Names are never shared">
+            <div className="chips">
+              {BANDS.map((b) => (
+                <button
+                  key={b.key}
+                  className={`chip ${p.ageBands.includes(b.key) ? "on" : ""}`}
+                  aria-pressed={p.ageBands.includes(b.key)}
+                  onClick={() => set("ageBands", p.ageBands.includes(b.key) ? p.ageBands.filter((x) => x !== b.key) : [...p.ageBands, b.key])}
+                >
+                  {b.label}
+                </button>
+              ))}
+            </div>
+            <textarea
+              className="input"
+              rows={2}
+              placeholder={"One per line, e.g.\nAva 7\nMax 4"}
+              aria-label="Kids' names and ages"
+              defaultValue={p.kids.map((k) => (k.age ? `${k.name} ${k.age}` : k.name)).join("\n")}
+              onChange={(e) =>
+                set(
+                  "kids",
+                  e.target.value
+                    .split("\n")
+                    .map((l) => l.trim())
+                    .filter(Boolean)
+                    .map((l) => {
+                      const m = l.match(/^(.*?)[\s,]+(\d{1,2})$/);
+                      return m ? { name: m[1].trim(), age: Number(m[2]) } : { name: l, age: null };
+                    }),
+                )
+              }
+            />
+          </SheetSection>
+          <SheetSection title="How far can they go?">
+            <div className="onb-dial">
+              <div className="between">
+                <span className="eyebrow">Spook</span>
+                <strong>{SPOOK[p.spookLevel]}</strong>
+              </div>
+              <div className="dial" role="radiogroup" aria-label="Spook level">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button key={n} role="radio" aria-checked={p.spookLevel === n} className={n <= p.spookLevel ? "on" : ""} onClick={() => set("spookLevel", n)} aria-label={SPOOK[n]} />
+                ))}
+              </div>
+              <div className="between small muted">
+                <span>Cosy</span>
+                <span>Properly spooky</span>
+              </div>
+            </div>
+            <div className="onb-dial">
+              <div className="between">
+                <span className="eyebrow">Chaos</span>
+                <strong>{CHAOS[p.chaosLevel]}</strong>
+              </div>
+              <div className="dial" role="radiogroup" aria-label="Chaos level">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button key={n} role="radio" aria-checked={p.chaosLevel === n} className={n <= p.chaosLevel ? "on" : ""} onClick={() => set("chaosLevel", n)} aria-label={CHAOS[n]} />
+                ))}
+              </div>
+              <div className="between small muted">
+                <span>One spot, one scene</span>
+                <span>Whole-room mayhem</span>
+              </div>
+            </div>
+          </SheetSection>
+          <SheetSection title="Time at 11pm">
+            <div className="option-grid">
+              {[5, 10, 20, 30].map((m) => (
+                <button key={m} className={`option ${p.maxSetupMinutes === m ? "on" : ""}`} aria-pressed={p.maxSetupMinutes === m} onClick={() => set("maxSetupMinutes", m)}>
+                  {m} min
+                </button>
+              ))}
+            </div>
+          </SheetSection>
+          <SheetSection title="Mess">
+            <Segment
+              options={[
+                { key: "low" as const, label: "Keep it tidy" },
+                { key: "medium" as const, label: "A bit" },
+                { key: "high" as const, label: "Go wild" },
+              ]}
+              value={p.messTolerance}
+              onChange={(v) => set("messTolerance", v)}
+            />
+          </SheetSection>
+          <SheetSection title="The season">
+            <div className="row">
+              <label className="field grow">
+                <span className="eyebrow">Elves arrive</span>
+                <input className="input" type="date" value={`${YEAR}-${p.seasonStart}`} onChange={(e) => e.target.value && set("seasonStart", e.target.value.slice(5))} />
+              </label>
+              <label className="field grow">
+                <span className="eyebrow">Last night</span>
+                <input className="input" type="date" value={`${YEAR}-${p.seasonEnd}`} onChange={(e) => e.target.value && set("seasonEnd", e.target.value.slice(5))} />
+              </label>
+            </div>
+          </SheetSection>
+          <SheetSection title="Off limits">
             <textarea
               className="input"
               rows={3}
               placeholder="e.g. nothing in the baby's room, no flour on the carpet, OK to cut up old socks"
               value={p.offLimits}
               onChange={(e) => set("offLimits", e.target.value)}
+              aria-label="Off limits"
             />
-          </div>
-          <div className="field">
-            <span className="eyebrow">Anything else the elves should know</span>
-            <textarea className="input" rows={2} value={p.notes} onChange={(e) => set("notes", e.target.value)} />
-          </div>
-          <div className="row">
-            <div className="field grow">
-              <span className="eyebrow">Season starts</span>
-              <input className="input" value={p.seasonStart} onChange={(e) => set("seasonStart", e.target.value)} placeholder="12-01" />
-            </div>
-            <div className="field grow">
-              <span className="eyebrow">Season ends</span>
-              <input className="input" value={p.seasonEnd} onChange={(e) => set("seasonEnd", e.target.value)} placeholder="12-24" />
-            </div>
-          </div>
-          <button className="btn primary full" onClick={() => void saveProfile()}>
-            Save
-          </button>
+          </SheetSection>
+          <SheetSection title="Supplies you usually have">
+            <textarea className="input" rows={2} value={p.supplies} onChange={(e) => set("supplies", e.target.value)} aria-label="Supplies" />
+          </SheetSection>
+          <SheetSection title="Anything else the elves should know">
+            <textarea className="input" rows={2} value={p.notes} onChange={(e) => set("notes", e.target.value)} aria-label="Anything else" />
+          </SheetSection>
         </Sheet>
       )}
 
       {sheet === "family" && (
-        <Sheet eyebrow="Co-parents" title="Your family" onClose={() => setSheet("none")}>
-          <p className="body">Send your partner this link. They get the same house, plan, log and elves, so whoever is up at 11pm sees the same thing.</p>
-          <InviteShare link={inviteLink(data.family.inviteCode)} text={familyInviteText(p.elves.map((e) => e.name).filter(Boolean), inviteLink(data.family.inviteCode))} />
-          <p className="muted small">
-            Or they can type the family code when they sign up: <strong className="code">{data.family.inviteCode}</strong>
-          </p>
-          <div className="field">
-            <span className="eyebrow">Your name</span>
-            <input className="input" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-          </div>
-          <div className="field">
-            <span className="eyebrow">Elf page handle</span>
-            <input className="input" value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase())} />
-          </div>
-          <button className="btn primary full" onClick={() => void saveProfile()}>
-            Save
-          </button>
+        <Sheet
+          eyebrow="Co-parents"
+          title="Your family"
+          onClose={() => setSheet("none")}
+          footer={
+            <button className="btn primary large full" onClick={() => void saveProfile()}>
+              Save
+            </button>
+          }
+        >
+          <SheetSection title={data.family.members.length > 1 ? "Who's in" : "Invite your co-parent"}>
+            {data.family.members.length > 1 && (
+              <div className="list">
+                {data.family.members.map((m) => (
+                  <div key={m.id} className="list-row set-row">
+                    <span className="comment-avatar" aria-hidden="true">
+                      {m.displayName.charAt(0).toUpperCase()}
+                    </span>
+                    <span className="row-label">
+                      {m.displayName}
+                      {m.id === data.user.id && <span className="row-sub">You</span>}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="muted small">They get the same house, plan, log and elves, so whoever is up at 11pm sees the same thing.</p>
+            <InviteShare link={inviteLink(data.family.inviteCode)} text={familyInviteText(p.elves.map((e) => e.name).filter(Boolean), inviteLink(data.family.inviteCode))} />
+            <p className="muted small">
+              Or they type the family code when they sign up: <strong className="code">{data.family.inviteCode}</strong>
+            </p>
+          </SheetSection>
+          <SheetSection title="You">
+            <label className="field">
+              <span className="eyebrow">Your name</span>
+              <input className="input" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+            </label>
+            <label className="field">
+              <span className="eyebrow">Elf page handle</span>
+              <input className="input" value={handle} onChange={(e) => setHandle(e.target.value.toLowerCase())} />
+            </label>
+          </SheetSection>
           {data.family.members.length === 1 && data.stats.nightsDone === 0 && data.rooms.length === 0 && (
-            <>
-              <div className="eyebrow">Or join your partner&apos;s elf instead</div>
-              <div className="row">
-                <input className="input" placeholder="Their family code" value={familyCode} onChange={(e) => setFamilyCode(e.target.value.toUpperCase())} />
+            <SheetSection title="Joining your partner's elf instead?">
+              <div className="chat-number">
+                <input className="input" placeholder="FAM-XXXX-XXXX" value={familyCode} onChange={(e) => setFamilyCode(e.target.value.toUpperCase())} aria-label="Their family code" />
                 <button
                   className="btn"
                   disabled={!familyCode}
@@ -538,80 +596,105 @@ export default function SettingsPage() {
                       .joinFamily(familyCode)
                       .then(() => actions.reload())
                       .then(() => setSheet("none"))
-                      .catch((e) => setError(errorMessage(e)))
+                      .catch((e) => setSheetError(errorMessage(e)))
                   }
                 >
                   Join
                 </button>
               </div>
-            </>
+            </SheetSection>
           )}
+          {sheetError && <p className="error">{sheetError}</p>}
         </Sheet>
       )}
 
       {sheet === "delete" && (
-        <Sheet eyebrow="Account" title="Delete your account?" onClose={() => setSheet("none")}>
-          {data.family.members.length > 1 ? (
-            <p className="body">
-              This removes you, your posts, votes and comments. Your family&apos;s rooms, nights and elves stay with{" "}
-              {data.family.members
-                .filter((m) => m.id !== data.user.id)
-                .map((m) => m.displayName)
-                .join(" and ")}
-              .
-            </p>
-          ) : (
-            <p className="body">
-              This permanently deletes your account and everything in it: your rooms and photos, every planned and logged night, your elves, posts and circles. It can&apos;t be undone.
-            </p>
-          )}
-          <div className="field">
+        <Sheet
+          eyebrow="Account"
+          title="Delete your account?"
+          onClose={() => setSheet("none")}
+          footer={
+            <div className="sheet-actions">
+              <button className="btn secondary" onClick={() => setSheet("none")}>
+                Keep it
+              </button>
+              <button
+                className="btn danger"
+                disabled={!deletePassword || deleting}
+                onClick={() => {
+                  setDeleting(true);
+                  setDeleteError(null);
+                  void api
+                    .deleteAccount(deletePassword)
+                    .then(() => router.replace("/login"))
+                    .catch((e) => setDeleteError(errorMessage(e)))
+                    .finally(() => setDeleting(false));
+                }}
+              >
+                <Trash2 size={18} strokeWidth={1.8} /> {deleting ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          }
+        >
+          <div className="kids-see warn">
+            <Trash2 size={18} strokeWidth={1.8} aria-hidden="true" />
+            {data.family.members.length > 1 ? (
+              <p className="body">
+                This removes you, your posts, votes and comments. Your family&apos;s rooms, nights and elves stay with{" "}
+                {data.family.members
+                  .filter((m) => m.id !== data.user.id)
+                  .map((m) => m.displayName)
+                  .join(" and ")}
+                .
+              </p>
+            ) : (
+              <p className="body">This permanently deletes everything: your rooms and photos, every planned and logged night, your elves, posts and circles. It can&apos;t be undone.</p>
+            )}
+          </div>
+          <label className="field">
             <span className="eyebrow">Type your password to confirm</span>
             <input className="input" type="password" autoComplete="current-password" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} aria-label="Password" />
-          </div>
+          </label>
           {deleteError && <p className="error">{deleteError}</p>}
-          <button
-            className="btn outline-accent full"
-            disabled={!deletePassword || deleting}
-            onClick={() => {
-              setDeleting(true);
-              setDeleteError(null);
-              void api
-                .deleteAccount(deletePassword)
-                .then(() => router.replace("/login"))
-                .catch((e) => setDeleteError(errorMessage(e)))
-                .finally(() => setDeleting(false));
-            }}
-          >
-            {deleting ? "Deleting…" : "Delete my account"}
-          </button>
-          <button className="btn full" onClick={() => setSheet("none")}>
-            Keep my account
-          </button>
         </Sheet>
       )}
 
       {sheet === "pin" && (
-        <Sheet title="Change PIN" onClose={() => setSheet("none")}>
-          <input className="input" inputMode="numeric" placeholder="Current PIN" value={oldPin} onChange={(e) => setOldPin(e.target.value)} aria-label="Current PIN" />
-          <input className="input" inputMode="numeric" placeholder="New PIN (4 to 8 digits)" value={newPin} onChange={(e) => setNewPin(e.target.value)} aria-label="New PIN" />
-          <button
-            className="btn primary full"
-            disabled={!oldPin || !newPin}
-            onClick={() =>
-              void api
-                .setPin(newPin, oldPin)
-                .then(() => {
-                  actions.toast("PIN changed.");
-                  setSheet("none");
-                  setOldPin("");
-                  setNewPin("");
-                })
-                .catch((e) => setError(errorMessage(e)))
-            }
-          >
-            Change PIN
-          </button>
+        <Sheet
+          eyebrow="Lock"
+          title="Change your PIN"
+          onClose={() => setSheet("none")}
+          footer={
+            <button
+              className="btn primary large full"
+              disabled={!oldPin || !/^\d{4,8}$/.test(newPin)}
+              onClick={() => {
+                setSheetError(null);
+                void api
+                  .setPin(newPin, oldPin)
+                  .then(() => {
+                    actions.toast("PIN changed.");
+                    setSheet("none");
+                    setOldPin("");
+                    setNewPin("");
+                  })
+                  .catch((e) => setSheetError(errorMessage(e)));
+              }}
+            >
+              Change PIN
+            </button>
+          }
+        >
+          <label className="field">
+            <span className="eyebrow">Current PIN</span>
+            <input className="input pin-input" type="password" inputMode="numeric" autoComplete="off" maxLength={8} value={oldPin} onChange={(e) => setOldPin(e.target.value.replace(/\D/g, ""))} />
+          </label>
+          <label className="field">
+            <span className="eyebrow">New PIN</span>
+            <input className="input pin-input" type="password" inputMode="numeric" autoComplete="off" maxLength={8} value={newPin} onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))} />
+            <span className="muted small">4 to 8 digits.</span>
+          </label>
+          {sheetError && <p className="error">{sheetError}</p>}
         </Sheet>
       )}
     </div>

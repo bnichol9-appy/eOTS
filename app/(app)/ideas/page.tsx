@@ -7,7 +7,7 @@ import { useApp } from "@/components/AppContext";
 import { SectionHead } from "@/components/home/Sections";
 import { IdeaSheet } from "@/components/IdeaSheet";
 import { PostCard } from "@/components/PostCard";
-import { Actions, Chips, ICON_SM, Segment, Sheet, Topbar, Working } from "@/components/ui";
+import { Actions, Chips, ICON_SM, Segment, Sheet, SheetSection, Topbar, Working } from "@/components/ui";
 import { api } from "@/lib/client/api";
 import { errorMessage, localDate, timeAgo } from "@/lib/client/utils";
 import { samplePhoto } from "@/lib/placeholders";
@@ -443,18 +443,20 @@ function OtherElves() {
 
 function CircleSheet({ onClose }: { onClose: () => void }) {
   const { actions } = useApp();
+  const router = useRouter();
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function go(fn: () => Promise<unknown>) {
+  async function go(fn: () => Promise<unknown>, then?: (result: unknown) => void) {
     setBusy(true);
     setError(null);
     try {
-      await fn();
+      const result = await fn();
       await actions.reload();
       onClose();
+      then?.(result);
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -464,21 +466,34 @@ function CircleSheet({ onClose }: { onClose: () => void }) {
 
   return (
     <Sheet eyebrow="Circles" title="Your people" onClose={onClose}>
-      <p className="body">A private group: the school parents, the cousins, your street. Members see each other&apos;s nights and can share setups just to the circle.</p>
-      <div className="eyebrow">Start one</div>
-      <div className="row">
-        <input className="input" placeholder="Name, e.g. Year 2 parents" value={name} onChange={(e) => setName(e.target.value)} />
-        <button className="btn primary" disabled={!name.trim() || busy} onClick={() => void go(() => api.createCircle(name))}>
-          Create
-        </button>
-      </div>
-      <div className="eyebrow">Or join with a code</div>
-      <div className="row">
-        <input className="input" placeholder="CIR-XXXX-XXXX" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
-        <button className="btn" disabled={!code.trim() || busy} onClick={() => void go(() => api.joinCircle(code))}>
-          Join
-        </button>
-      </div>
+      <p className="body">A private group: the school parents, the cousins, your street. Members see each other&apos;s nights and can share set-ups just to the circle.</p>
+      <SheetSection title="Start one">
+        <div className="chat-number">
+          <input className="input" placeholder="Name, e.g. Year 2 parents" value={name} onChange={(e) => setName(e.target.value)} aria-label="Circle name" />
+          <button
+            className="btn primary"
+            disabled={!name.trim() || busy}
+            onClick={() =>
+              void go(
+                () => api.createCircle(name),
+                (c) => router.push(`/ideas/circles/${(c as { id: string }).id}?invite=1`),
+              )
+            }
+          >
+            Create
+          </button>
+        </div>
+        <p className="muted small">You&apos;ll get a link to send on WhatsApp straight after.</p>
+      </SheetSection>
+      <SheetSection title="Or join one">
+        <div className="chat-number">
+          <input className="input" placeholder="CIR-XXXX-XXXX" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} aria-label="Circle code" />
+          <button className="btn" disabled={!code.trim() || busy} onClick={() => void go(() => api.joinCircle(code))}>
+            Join
+          </button>
+        </div>
+        <p className="muted small">Got an invite link instead? Just open it.</p>
+      </SheetSection>
       {error && <p className="error">{error}</p>}
     </Sheet>
   );

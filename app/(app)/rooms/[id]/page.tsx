@@ -1,13 +1,13 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronRight, Pencil } from "lucide-react";
+import { Baby, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { SectionHead } from "@/components/home/Sections";
 import { IdeaSheet } from "@/components/IdeaSheet";
 import { PhotoPicker } from "@/components/PhotoPicker";
 import { RoomEditor } from "@/components/RoomEditor";
-import { Actions, Checkbox, ICON, Sheet, Tiles, Topbar, Working } from "@/components/ui";
+import { Actions, ICON, Sheet, Tiles, Topbar, Working } from "@/components/ui";
 import { api } from "@/lib/client/api";
 import { chosenIdea, roomRotation } from "@/lib/client/season";
 import { dayNum, errorMessage, localDate, REACTIONS, weekday } from "@/lib/client/utils";
@@ -239,36 +239,52 @@ export default function RoomPage() {
       )}
 
       {edit && (
-        <Sheet title="Room details" onClose={() => setEdit(false)}>
-          <input className="input" value={name} onChange={(e) => setName(e.target.value)} aria-label="Room name" />
-          <input
-            className="input"
-            placeholder="Notes for the elves, e.g. the kids come down these stairs first"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            aria-label="Notes for the elves"
-          />
-          <label className="check-line">
-            <Checkbox on={kids} onChange={setKids} label="Child's bedroom" />A child&apos;s bedroom (used sparingly)
+        <Sheet
+          eyebrow="Room"
+          title="Room details"
+          onClose={() => setEdit(false)}
+          footer={
+            <button className="btn primary large full" onClick={() => void run("save", () => api.updateRoom(room.id, { name, notes, isKidsRoom: kids })).then(() => setEdit(false))}>
+              Save
+            </button>
+          }
+        >
+          <label className="field">
+            <span className="eyebrow">Name</span>
+            <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
           </label>
-          <button className="btn primary full" onClick={() => void run("save", () => api.updateRoom(room.id, { name, notes, isKidsRoom: kids })).then(() => setEdit(false))}>
-            Save
-          </button>
-          <button
-            className="btn outline-accent full"
-            onClick={() => {
-              if (confirm(`Delete ${room.name} and its photo?`))
-                api
-                  .deleteRoom(room.id)
-                  .then(() => {
-                    actions.setRooms((rs) => rs.filter((r) => r.id !== room.id));
-                    router.replace("/rooms");
-                  })
-                  .catch((e) => setError(errorMessage(e)));
-            }}
-          >
-            Delete room
-          </button>
+          <label className="field">
+            <span className="eyebrow">Notes for the elves</span>
+            <textarea className="input" rows={2} placeholder="e.g. the kids come down these stairs first" value={notes} onChange={(e) => setNotes(e.target.value)} />
+          </label>
+          <div className="list">
+            <button className="list-row set-row" role="switch" aria-checked={kids} onClick={() => setKids(!kids)}>
+              <Baby size={18} strokeWidth={1.8} className="row-icon" aria-hidden="true" />
+              <span className="row-label">
+                A child&apos;s bedroom
+                <span className="row-sub">Used sparingly, never above the bed</span>
+              </span>
+              <span className={`switch ${kids ? "on" : ""}`} aria-hidden="true">
+                <i />
+              </span>
+            </button>
+            <button
+              className="list-row set-row"
+              onClick={() => {
+                if (confirm(`Delete ${room.name} and its photo?`))
+                  api
+                    .deleteRoom(room.id)
+                    .then(() => {
+                      actions.setRooms((rs) => rs.filter((r) => r.id !== room.id));
+                      router.replace("/rooms");
+                    })
+                    .catch((e) => setError(errorMessage(e)));
+              }}
+            >
+              <Trash2 size={18} strokeWidth={1.8} className="row-icon" aria-hidden="true" />
+              <span className="row-label acc">Delete this room</span>
+            </button>
+          </div>
         </Sheet>
       )}
     </div>

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Bell as BellIcon, Check, type LucideIcon } from "lucide-react";
+import { Bell as BellIcon, Check, Moon, X, type LucideIcon } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import type { Elf, ElfColor, Role } from "@/lib/types";
 
@@ -111,29 +111,61 @@ export function Working({ label }: { label?: string }) {
   }, []);
   return (
     <div className="working" role="status">
-      <div className="spinner" />
-      <p className="muted">{label ?? LINES[i]}</p>
+      <span className="working-moon" aria-hidden="true">
+        <Moon size={22} strokeWidth={1.8} />
+      </span>
+      <p className="working-line">{label ?? LINES[i]}</p>
+      <span className="working-dots" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </span>
     </div>
   );
 }
 
-export function Sheet({ eyebrow, title, onClose, children }: { eyebrow?: string; title: string; onClose: () => void; children: ReactNode }) {
+/** Bottom sheet: display title, a close button, a scrolling body and an optional pinned footer for the main actions. */
+export function Sheet({ eyebrow, title, onClose, children, footer }: { eyebrow?: string; title: string; onClose: () => void; children: ReactNode; footer?: ReactNode }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
   }, [onClose]);
   return (
     <div className="scrim" onClick={onClose}>
       <div className="sheet" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <div className="handle" />
         <div className="sheet-head">
-          {eyebrow && <div className="eyebrow">{eyebrow}</div>}
-          <h2>{title}</h2>
+          <div className="grow">
+            {eyebrow && <div className="eyebrow">{eyebrow}</div>}
+            <h2 className="sheet-title">{title}</h2>
+          </div>
+          <button className="icon-btn sheet-close" onClick={onClose} aria-label="Close">
+            <X size={18} strokeWidth={1.8} />
+          </button>
         </div>
         <div className="sheet-body">{children}</div>
+        {footer && <div className="sheet-foot">{footer}</div>}
       </div>
     </div>
+  );
+}
+
+/** A titled group inside a sheet. */
+export function SheetSection({ title, hint, children }: { title: string; hint?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="sheet-section">
+      <div className="sheet-section-head">
+        <h3>{title}</h3>
+        {hint && <span className="muted small">{hint}</span>}
+      </div>
+      {children}
+    </section>
   );
 }
 
