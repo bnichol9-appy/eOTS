@@ -37,7 +37,9 @@ async function sendPush(userIds: string[], notice: Notice) {
   const db = await getDb();
   const subs = await db.select().from(pushSubscriptions).where(inArray(pushSubscriptions.userId, userIds));
   if (subs.length === 0) return;
-  const webpush = (await import("web-push")).default;
+  // web-push is CommonJS; depending on how it is bundled the API is on the module or on .default.
+  const mod = (await import("web-push")) as typeof import("web-push") & { default?: typeof import("web-push") };
+  const webpush = mod.default ?? mod;
   webpush.setVapidDetails(process.env.VAPID_SUBJECT ?? "mailto:hello@example.com", process.env.VAPID_PUBLIC_KEY!, process.env.VAPID_PRIVATE_KEY!);
   const payload = JSON.stringify({ title: notice.title, body: notice.body, url: notice.url ?? "/", tag: notice.type });
   await Promise.all(
