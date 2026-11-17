@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarClock, ChevronRight, Lightbulb, MessageSquare, Moon, Share2, ShoppingBag, Sparkles } from "lucide-react";
+import { Camera, CalendarClock, ChevronRight, Lightbulb, MessageSquare, Moon, Share2, ShoppingBag, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { AssistantSheet } from "@/components/AssistantSheet";
+import { SoloSheet } from "@/components/SoloSheet";
 import { Actions, ElfAvatar, ICON_SM, Tiles, Working } from "@/components/ui";
 import { datedRemindMessage, friendlyTime } from "@/lib/assistant";
 import { api } from "@/lib/client/api";
@@ -38,6 +39,7 @@ export function NightDetail({ date, day, heading, eyebrow, big }: { date: string
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [remind, setRemind] = useState(false);
+  const [solo, setSolo] = useState(false);
   const now = localDate();
   const state = nightState(day, date, now);
   const idea = chosenIdea(day);
@@ -219,6 +221,17 @@ export function NightDetail({ date, day, heading, eyebrow, big }: { date: string
         </div>
       )}
 
+      {date <= now && state !== "logged" && (
+        <button className="solo-entry" onClick={() => setSolo(true)}>
+          <Camera {...SM} aria-hidden="true" />
+          <span className="row-label">
+            <strong>Went solo?</strong>
+            <span className="row-sub">{idea ? "Did something else? Snap it and it replaces the plan." : "Snap what you built and log this night."}</span>
+          </span>
+          <ChevronRight {...SM} className="muted" aria-hidden="true" />
+        </button>
+      )}
+
       {nightHasActions(state) && (
         <Actions>
           {state === "logged" ? (
@@ -268,6 +281,19 @@ export function NightDetail({ date, day, heading, eyebrow, big }: { date: string
             </>
           )}
         </Actions>
+      )}
+
+      {solo && (
+        <SoloSheet
+          date={date}
+          onClose={() => setSolo(false)}
+          onDone={(r) => {
+            actions.setDay(r.day);
+            if (r.taste) actions.setTaste(r.taste);
+            actions.toast("Logged. Share it from here if you like.");
+            setSolo(false);
+          }}
+        />
       )}
 
       {remind && idea && (

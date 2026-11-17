@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
-import { CalendarClock, MessageSquare, Moon, Share2, ShieldCheck, Shuffle, Sparkles, Trophy, Users } from "lucide-react";
+import { Camera, CalendarClock, ChevronRight, MessageSquare, Moon, Share2, ShieldCheck, Shuffle, Sparkles, Trophy, Users } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useApp } from "@/components/AppContext";
 import { AssistantSheet } from "@/components/AssistantSheet";
 import { IdeaSheet } from "@/components/IdeaSheet";
 import { PhotoPicker } from "@/components/PhotoPicker";
+import { SoloSheet } from "@/components/SoloSheet";
 import { Actions, Chips, SheetSection, ElfAvatar, ElfStack, ICON_SM, Pin, Segment, Sheet, Tiles, Working, rolesToElves } from "@/components/ui";
 import { datedRemindMessage, friendlyTime } from "@/lib/assistant";
 import { api, type DayResponse } from "@/lib/client/api";
@@ -47,7 +48,7 @@ export function NightPlanner({
   const [heroIdx, setHeroIdx] = useState(0);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [sheet, setSheet] = useState<"none" | "idea" | "tweak" | "complete" | "share" | "remind">("none");
+  const [sheet, setSheet] = useState<"none" | "idea" | "tweak" | "complete" | "share" | "remind" | "solo">("none");
   const [direction, setDirection] = useState<string[]>([]);
   const [custom, setCustom] = useState("");
   const [focusRoomId, setFocusRoomId] = useState("");
@@ -298,6 +299,17 @@ export function NightPlanner({
         </div>
       )}
 
+      {date <= today && day.status !== "done" && busy === null && (
+        <button className="solo-entry" onClick={() => setSheet("solo")}>
+          <Camera size={20} strokeWidth={1.8} aria-hidden="true" />
+          <span className="row-label">
+            <strong>Went solo?</strong>
+            <span className="row-sub">{chosen ? "Did something else? Snap it and it replaces the plan." : "Did your own thing? Snap the aftermath and log it."}</span>
+          </span>
+          <ChevronRight size={18} strokeWidth={1.8} className="muted" aria-hidden="true" />
+        </button>
+      )}
+
       <Actions>
         {day.status === "planned" && chosen && date > today ? (
           <>
@@ -467,6 +479,21 @@ export function NightPlanner({
             )}
           </div>
         </Sheet>
+      )}
+
+      {sheet === "solo" && (
+        <SoloSheet
+          date={date}
+          onClose={() => setSheet("none")}
+          onDone={(r) => {
+            actions.setDay(r.day);
+            if (r.taste) actions.setTaste(r.taste);
+            if (r.newBadges?.length) actions.toast(`New badge${r.newBadges.length > 1 ? "s" : ""} earned. See Settings › Badges.`);
+            else actions.toast("Logged. Nice work.");
+            if (r.day.date !== date) setDate(r.day.date);
+            setSheet("share");
+          }}
+        />
       )}
 
       {sheet === "complete" && (

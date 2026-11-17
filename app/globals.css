@@ -3499,3 +3499,48 @@ select.input {
 .row-label.muted {
   color: var(--muted);
 }
+
+/* Solo nights */
+.solo-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 14px;
+  border-radius: var(--r-card);
+  border: 1px dashed var(--dash);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.solo-entry > svg:first-child {
+  flex: none;
+  color: var(--acc-text);
+}
+.solo-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  color: var(--body);
+}
+.solo-note svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--acc-text);
+}
+.date-chip {
+  width: auto;
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+.elf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}

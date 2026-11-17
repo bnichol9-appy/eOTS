@@ -117,6 +117,7 @@ export const api = {
   kit: (from: string, nights = 4) => call<KitBag>("GET", `/kit?from=${from}&nights=${nights}`),
   plan: (from: string, nights = 4) => call<{ days: Day[] }>("POST", "/plan", { from, nights }),
   planDates: (dates: string[]) => call<{ days: Day[] }>("POST", "/plan", { dates }),
+  solo: (date: string, body: { photo: string; title: string; roomName: string; elves: string[]; tags: string[]; reaction: number; notes: string }) => call<DayResponse>("POST", `/days/${date}/solo`, body),
   complete: (date: string, body: { photo: string | null; reaction: number; feedbackTags: string[]; notes: string }) => call<DayResponse>("POST", `/days/${date}/complete`, body),
   share: (date: string, b: { description: string; visibility: "public" | "circles"; enterChallenge: boolean }) => call<DayResponse>("POST", `/days/${date}/share`, b),
 

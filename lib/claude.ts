@@ -71,6 +71,8 @@ const IdeasSchema = z.object({
 const SetupAnalysisSchema = z.object({
   description: z.string().describe("What was actually built, two to four sentences, specific about objects and scale"),
   styleSignals: z.array(z.string()).describe("Five to eight short observations about this family's style"),
+  suggestedTitle: z.string().describe("A short, playful title for this setup in the style of a set-up name, two to five words, e.g. 'The Great Sock Seance'"),
+  whatKidsSee: z.string().describe("One sentence describing the scene the kids walk into, from their point of view"),
 });
 
 const TasteSchema = z.object({
