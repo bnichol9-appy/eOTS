@@ -1508,42 +1508,128 @@ select.input {
   text-align: center;
   gap: 16px;
 }
-.pin-dots {
+.pin-screen {
+  justify-content: center;
+  gap: 14px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+}
+.pin-top {
   display: flex;
-  gap: 12px;
-  min-height: 16px;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
-.pin-dots i {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid var(--accent);
-}
-.pin-dots i.on {
-  background: var(--accent);
-}
-.keypad {
-  display: grid;
-  grid-template-columns: repeat(3, 76px);
-  gap: 12px;
-}
-.keypad button {
-  height: 76px;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  background: transparent;
-  font-size: 26px;
+.pin-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  background: var(--surface);
+  color: var(--text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 4px;
+}
+.pin-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 34px;
+  line-height: 1.1;
+  margin: 0;
+  color: var(--text);
+}
+.pin-sub {
+  margin: 0;
+  max-width: 300px;
+}
+.pin-dots {
+  display: flex;
+  gap: 14px;
+  min-height: 18px;
+  margin-top: 10px;
+}
+.pin-dots i {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--dash);
+  transition: background 120ms ease-out, border-color 120ms ease-out;
+}
+.pin-dots i.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.pin-dots.shake {
+  animation: pin-shake 360ms ease-in-out;
+}
+@keyframes pin-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pin-dots.shake {
+    animation: none;
+  }
+}
+.pin-msg {
+  min-height: 20px;
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.pin-msg.error-text {
+  color: var(--acc-text);
+  font-weight: 700;
+}
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+}
+.keypad button {
+  height: 64px;
+  border-radius: 18px;
+  border: 0;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 26px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 80ms ease-out, background 120ms ease-out;
+}
+.keypad button:active:not(:disabled) {
+  transform: scale(0.96);
+  background: var(--line);
+}
+.keypad button:disabled {
+  cursor: default;
+}
+.keypad .key-soft {
+  background: transparent;
+  color: var(--muted);
+}
+.keypad .key-soft:disabled {
+  opacity: 0.4;
 }
 .keypad .key-go {
   background: var(--accent);
-  border-color: var(--accent);
   color: var(--on-accent);
 }
 .keypad .key-go:disabled {
   opacity: 0.35;
+}
+.pin-forgot {
+  margin-top: 6px;
+  min-height: 44px;
 }
 .auth-form {
   width: 100%;
